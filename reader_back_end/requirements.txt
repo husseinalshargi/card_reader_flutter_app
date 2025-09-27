@@ -1,0 +1,27 @@
+#view images
+matplotlib
+matplotlib-inline
+
+#image pre processing
+opencv-python
+imutils
+
+#OCR
+easyocr
+
+#to use gpu
+--extra-index-url https://download.pytorch.org/whl/cu129
+torch
+torchvision
+
+#for using llm
+langchain_core
+langchain-ollama
+
+#to use .env variables
+python-dotenv
+
+#to run the backend as an api, to run the server: uvicorn main:app --reload
+fastapi
+uvicorn
+pydantic 
