@@ -31,8 +31,6 @@ except Exception as e:
 
         
 @app.post('/process_card')
-def get_card_details(image: ImageRequest, file: UploadFile = File(...)):
-    print(type(image.is_binarized))
-    print('test')
-
-
+async def get_card_details(image_request: ImageRequest, image: UploadFile = File(...)):
+    img_content = await image.read()
+    

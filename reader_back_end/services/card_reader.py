@@ -13,11 +13,11 @@ class CardReader:
         self.ai_service = AIService(llm)
 
 
-    def read_card(self, path: str, is_bi: bool, is_extracted: bool, languages_list: list[str]) -> dict[str, str]:
+    def read_card(self, img_bytes: bytes, is_bi: bool, is_extracted: bool, languages_list: list[str]) -> dict[str, str]:
         """combine all services to read the card content (could be used for the api)"""
 
         #read the original image
-        img = self.image_reader.read_image(path)
+        img = self.image_reader.read_image(img_bytes)
 
         #pre-process the image
         processed_image = self.image_pre_processor.process_image(img, is_bi, is_extracted)

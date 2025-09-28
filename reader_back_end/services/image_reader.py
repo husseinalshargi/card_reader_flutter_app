@@ -1,14 +1,14 @@
-import cv2 as cv
+import cv2
+import numpy as np
 
 
 class ImageReader:
 
-    def read_image(path: str) -> cv.typing.MatLike:
-        """Reads an image (currently using a path from the dir later i will use db storage)"""
+    def read_image(img_bytes: bytes) -> cv2.typing.MatLike:
+        """Reads an image (it will read the image in bytes and convert it to an open cv img object)"""
 
-        cv.imread()
-
-        img = cv.imread(path)
+        np_array = np.frombuffer(img_bytes, dtype= 'uint8')
+        img_np = cv2.imdecode(np_array, cv2.IMREAD_COLOR_BGR)
         
-        return img
+        return img_np
 
