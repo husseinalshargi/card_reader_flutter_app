@@ -1,17 +1,11 @@
 from langchain_ollama import OllamaLLM
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from pydantic import BaseModel
 
 from reader_back_end.services.card_reader import CardReader
 from reader_back_end.settings.config import Config
 
 languages_list: list[str]
-
-class ImageRequest(BaseModel):
-    is_binarized: bool = True
-    is_extracted: bool = True
-    language: str = 'en'
-
 
 try:
     app = FastAPI()
@@ -31,6 +25,18 @@ except Exception as e:
 
         
 @app.post('/process_card')
-async def get_card_details(image_request: ImageRequest, image: UploadFile = File(...)):
-    img_content = await image.read()
+async def get_card_details(is_binarized: bool = Form(...),
+                            is_extracted: bool = Form(...),
+                            language: str = Form('en'),
+                            image: UploadFile = File(...)):
     
+    #read the image content (in bytes)
+    img_content = await image.read()
+
+    #as easy ocr in case of other languages it require them to be in the second place after 'en'
+    languages_list = ['en'] if language.strip().lower() == 'en' else ['en', language.strip().lower()]
+
+    #return the values in dict form 
+    card_details = card_reader.read_card(img_content, is_binarized, is_extracted, languages_list)
+
+    return card_details
