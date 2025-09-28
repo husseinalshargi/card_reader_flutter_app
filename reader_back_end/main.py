@@ -2,8 +2,8 @@ from langchain_ollama import OllamaLLM
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 
-from services.card_reader import CardReader
-from settings.config import Config
+from reader_back_end.services.card_reader import CardReader
+from reader_back_end.settings.config import Config
 
 languages_list: list[str]
 

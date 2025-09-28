@@ -1,9 +1,9 @@
 import cv2 as cv
 from langchain_ollama import OllamaLLM
 
-from services.image_reader import ImageReader
-from services.image_pre_processor import ImagePreProcessor
-from services.ai_service import AIService
+from reader_back_end.services.image_reader import ImageReader
+from reader_back_end.services.image_pre_processor import ImagePreProcessor
+from reader_back_end.services.ai_service import AIService
 
 
 class CardReader:
