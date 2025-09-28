@@ -4,6 +4,7 @@ import torch
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
 import cv2 as cv
+from langchain_core.output_parsers import StrOutputParser
 
 
 class AIService:
@@ -15,7 +16,8 @@ class AIService:
     def __init__(self, llm: OllamaLLM):
         self.set_up_prompts()
         self.llm = llm
-        self.llm_chain = (llm | self.template)
+        #StrOutputParser is needed to pass a dict to the llm that has values which will be injected in the prompt, first template then the llm in the chain
+        self.llm_chain = (self.template |llm | StrOutputParser())
 
     def set_up_prompts(self):
         self.template = PromptTemplate.from_template(
@@ -88,6 +90,8 @@ class AIService:
 
             text = []
             for result in results:
+                #skip bad extraction
+                if result[2] < 0.20: continue
                 text.append(result[1])
             return text
         
@@ -97,9 +101,9 @@ class AIService:
     
     def set_up_results(self, results: list[str]) -> str:
         """setup card info for llm"""
-        return '\n'.join(results)
+        return ', '.join(results)
 
-    def llm_process_ocr(self, text: str) -> dict[str, str]:
+    def llm_process_ocr(self, card_details_in_text: str) -> dict[str, str]:
         """
         llm will process, correct and arrange the str of extracted text to classes
         
@@ -117,9 +121,8 @@ class AIService:
             - state
             - country
         """
-        card_details = self.set_up_results(text)
         try:
-            response = self.llm_chain.invoke({'card_details': card_details})
+            response = self.llm_chain.invoke({'card_details': card_details_in_text})
         except Exception as e:
             print(f'error in llm {e}')
 
@@ -148,10 +151,10 @@ class AIService:
         """extract the final text from the image"""
 
         # extract text using ocr
-        text_list = self.read_image(img, languages_list)
+        extracted_words_list = self.read_image(img, languages_list)
 
         # convert easyocr list of strings to a single string to pass it to the llm
-        string_text = self.set_up_results(text_list)
+        string_text = self.set_up_results(extracted_words_list)
 
         # pass the string of classes to the llm to arrange them 
         final_response = self.llm_process_ocr(string_text)
