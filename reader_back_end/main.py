@@ -1,14 +1,27 @@
 from langchain_ollama import OllamaLLM
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 
 from reader_back_end.services.card_reader import CardReader
 from reader_back_end.settings.config import Config
 from reader_back_end.database_connections.redis_db import Redis_db
+from reader_back_end.api_conf.auth import auth
 
 languages_list: list[str]
 
 try:
+    
     app = FastAPI()
+
+    print("\n=== initalizing redis db ===")
+    rdb = Redis_db()
+    print('=== redis db initialized ===')
+
+
+    api_header_auth = auth(rdb)
+    # request limiter for api
+    dependencies = [
+        Depends(api_header_auth.handle_api_key_request)
+    ]
 
     #setup the llm instance 
     llm = OllamaLLM(model = Config.llm_model)
@@ -17,10 +30,6 @@ try:
     #setup the class that has the process of reading card details
     card_reader = CardReader(llm)
     print('=== card reader initialized ===')
-
-    print("\n=== initalizing redis db ===")
-    rdb = Redis_db()
-    print('=== redis db initialized ===')
     
 
 except Exception as e:
@@ -62,3 +71,6 @@ def create_api_key(user_email: str = Form(...)):
 
         return api_key
 
+@app.post('/test_api_key', dependencies = dependencies)
+def test():
+    return{'message': 'hello'}
