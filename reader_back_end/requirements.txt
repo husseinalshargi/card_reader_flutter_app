@@ -26,3 +26,7 @@ fastapi
 uvicorn
 pydantic 
 python-multipart
+
+#redis storage
+redis[hiredis]
+
