@@ -18,10 +18,6 @@ try:
 
 
     api_header_auth = auth(rdb)
-    # request limiter for api
-    dependencies = [
-        Depends(api_header_auth.handle_api_key_request)
-    ]
 
     #setup the llm instance 
     llm = OllamaLLM(model = Config.llm_model)
@@ -36,7 +32,7 @@ except Exception as e:
     print(f'error in initializing card reader back-end - {e}')    
 
         
-@app.post('/process_card')
+@app.post('/process_card', dependencies= [Depends(api_header_auth.handle_api_key_request)])
 async def get_card_details(is_binarized: bool = Form(...),
                             is_extracted: bool = Form(...),
                             language: str = Form('en'),
@@ -54,7 +50,7 @@ async def get_card_details(is_binarized: bool = Form(...),
     return card_details
 
 #post is safier as get shows data in the url
-@app.post('/create_api_key')
+@app.post('/create_api_key', dependencies= [Depends(api_header_auth.admin_access)])
 def create_api_key(user_email: str = Form(...)):
     api_key = None
     #create an api with the email of the user
@@ -71,6 +67,3 @@ def create_api_key(user_email: str = Form(...)):
 
         return api_key
 
-@app.post('/test_api_key', dependencies = dependencies)
-def test():
-    return{'message': 'hello'}

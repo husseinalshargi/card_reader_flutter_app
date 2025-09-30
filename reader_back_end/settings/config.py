@@ -11,3 +11,6 @@ class Config:
     REDIS_HOST = os.environ.get('REDIS_HOST')
     REDIS_PORT = int(os.environ.get('REDIS_PORT'))
     REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+
+    # admin api key for creating api keys
+    ADMIN_KEY = os.environ.get('ADMIN_KEY')

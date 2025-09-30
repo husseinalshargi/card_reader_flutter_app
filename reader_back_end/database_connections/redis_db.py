@@ -67,19 +67,24 @@ class Redis_db:
     
     def api_limiter(self, api_key: str, limit: int = 3, seconds:int = 60) -> bool:
         """using redis the user can only access api three times per minute, returns bool indicating the user can use the endpoint or not"""
-        print(api_key)
+        limiter_key = f"{api_key}:limit"
 
-        #nx will for the user a value if it does not exist
         #ex value will expire in seconds
         #this will set the value to 1 with an expire date only if it is expired, otherwise it will be incremented until it reaches a limit
-        self.r.set(name= api_key, value= 1, ex= seconds, nx= True) 
+        if self.r.get(limiter_key) is None:
+            self.r.set(name= limiter_key, value= 1, ex= seconds) 
 
         #this will check and increment at the same time, as incr returns the value
-        if int(self.r.incrby(api_key)) > limit:
+        if int(self.r.incrby(limiter_key)) >= limit:
             #i a user uses the api key more than three times per minute 
             return False
         
         return True
+    
+    def is_admin(self, api_key: str) -> bool:
+        
+        return True if api_key == Config.ADMIN_KEY else False
+            
 
 
 
