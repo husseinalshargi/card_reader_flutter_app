@@ -32,8 +32,8 @@ class Redis_db:
             print('email already has an api key')
             raise HTTPException(status_code=400, detail="email already has an api key")
 
-        #set it also as key: email, value: key
-        self.r.set(user_email, api_key)
+        #set it also as key: key, value: email, as now an email can't have different api key
+        self.r.set(api_key, user_email)
 
 
 
