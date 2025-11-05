@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "373166386355",
+    "project_id": "card-reader-app-b45fa",
+    "storage_bucket": "card-reader-app-b45fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:373166386355:android:9e5e6198e8b131ca45d4c6",
+        "android_client_info": {
+          "package_name": "com.example.card_reader_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "373166386355-jvthq6lriupba5gn0c2mcf0i47l50bv1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.card_reader_app",
+            "certificate_hash": "4102f73e82af6016616bebed8db0f5fec3fed745"
+          }
+        },
+        {
+          "client_id": "373166386355-a29dnu05jcq0la0r2ic3dmtj3lhbfsll.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCroMUsTKbAMJhqh5Ba0kTmkQN1cu1XVaw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "373166386355-a29dnu05jcq0la0r2ic3dmtj3lhbfsll.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "373166386355-uva08dfmb23er6efc09aceih894chk36.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.cardReaderApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

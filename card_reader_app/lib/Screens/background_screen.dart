@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 
-class BackgroundScreen extends StatefulWidget {
+class BackgroundScreen extends StatelessWidget {
   // this screen has the pattern with the color also has the status bar adjustment
   // all other scaffolds is passed to this
   const BackgroundScreen({super.key, required this.scaffoldWidget});
   final Widget scaffoldWidget;
 
-  @override
-  State<BackgroundScreen> createState() {
-    return _BackgroundScreenState();
-  }
-}
-
-class _BackgroundScreenState extends State<BackgroundScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -20,7 +13,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        image: DecorationImage(
+        image: const DecorationImage(
           fit: BoxFit.none,
           image: AssetImage("assets/images/StarPattern.png"),
           repeat: ImageRepeat.repeat,
@@ -33,7 +26,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
           colors: [colorScheme.tertiary, colorScheme.onTertiary],
         ),
       ),
-      child: widget.scaffoldWidget,
+      child: scaffoldWidget,
     );
   }
 }

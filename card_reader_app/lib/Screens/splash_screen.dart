@@ -108,7 +108,7 @@ class WaveClipper extends CustomClipper<Path> {
 
     var fourthLineControlPoint = Offset(size.width / 4, 50);
 
-    var fourthLineEndPoint = Offset(0, 100);
+    var fourthLineEndPoint = const Offset(0, 100);
 
     path.quadraticBezierTo(
       fourthLineControlPoint.dx,
