@@ -4,6 +4,7 @@ import 'package:card_reader_app/Screens/cards_screen.dart';
 import 'package:card_reader_app/Screens/scan_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
 import 'package:card_reader_app/Widgets/custom_drawer_button.dart';
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -219,8 +220,32 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 10),
 
                             CustomDrawerButton(
-                              onPressed: () {
-                                FirebaseAuth.instance.signOut();
+                              onPressed: () async {
+                                // present confirm button before signing the user out
+                                if (await confirm(
+                                  context,
+                                  title: Text(
+                                    "Confirm",
+                                    style: textStyle.titleLarge!.copyWith(
+                                      color: colorScheme.secondary,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    "Are you sure you want to sign out?",
+                                    style: textStyle.titleSmall!.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                  textOK: const Text("Sign Out"),
+                                  textCancel: const Text("Cancel"),
+                                )) {
+                                  await FirebaseAuth.instance.signOut();
+                                  Navigator.of(context).pop();
+                                }
+                                {
+                                  // do nothing otherwise
+                                  Navigator.of(context).pop();
+                                }
                               },
                               label: "Log Out",
                               icon: FontAwesomeIcons.arrowRightFromBracket,
