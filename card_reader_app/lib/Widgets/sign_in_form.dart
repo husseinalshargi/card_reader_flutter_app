@@ -360,7 +360,6 @@ class _SignInFormState extends State<SignInForm> {
               ),
             ),
           ),
-          const SizedBox(height: 25),
           Padding(
             padding: const EdgeInsetsGeometry.symmetric(
               vertical: 5,

@@ -1,15 +1,28 @@
 import 'package:card_reader_app/Screens/auth_screen.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
+import 'package:card_reader_app/Screens/cards_screen.dart';
+import 'package:card_reader_app/Screens/scan_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
+import 'package:card_reader_app/Widgets/custom_drawer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 //get the current user signed in (it will be null if there isn't any user signed in, we could use it to show the auth screen)
 User? currentUser = FirebaseAuth.instance.currentUser;
+const double bottomNavSize = 55;
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // the currect selected screen to show the user
+  int currentContentIdx = 0;
+  String currentTitle = "Card Reader App";
 
   void _checkIfUserValidated(BuildContext context) async {
     await currentUser!.reload();
@@ -47,17 +60,38 @@ class HomeScreen extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme;
+    Widget currentContent;
 
     //create a virable to get the height to place a line
     final appbar = AppBar(
       backgroundColor: Colors.transparent,
       centerTitle: true,
       title: Text(
-        "Card Reader App",
-        style: textStyle.titleLarge!.copyWith(color: colorScheme.secondary),
+        currentTitle,
+        style: textStyle.titleLarge!.copyWith(
+          color: colorScheme.secondary,
+          fontSize: 30,
+        ),
       ),
       iconTheme: IconThemeData(color: colorScheme.secondary, size: 30),
     );
+
+    // based on the index of the content present it as some needs buildcontext which means that i can't generate it outside context
+    switch (currentContentIdx) {
+      case 0:
+        currentContent = CardsScreen(appBar: appbar);
+        break;
+
+      case 1:
+        currentContent = ScanScreen(
+          appbarHeight: appbar.preferredSize.height,
+          bottomNavSize: bottomNavSize,
+        );
+        break;
+
+      default:
+        currentContent = CardsScreen(appBar: appbar);
+    }
 
     // make sure if the user isn't logged in (he logged out) return the auth page (replace this page). it wont be needed as we have StreamBuilder but just in case
     _checkIfUserAuthenticated(context);
@@ -66,7 +100,7 @@ class HomeScreen extends StatelessWidget {
     _checkIfUserValidated(context);
 
     return Scaffold(
-      drawer: const Drawer(),
+      drawer: CustomDrawer(currentUser: currentUser!),
       extendBodyBehindAppBar: true,
       appBar: appbar,
       backgroundColor: Colors.transparent,
@@ -87,6 +121,7 @@ class HomeScreen extends StatelessWidget {
             ),
             child: Stack(
               children: [
+                //line dividing app bar
                 Positioned(
                   top: appbar.preferredSize.height,
                   left: 20,
@@ -99,28 +134,11 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
+                // current screen (cards or scan or more)
                 Align(
-                  alignment: AlignmentGeometry.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.solidFaceSadTear,
-                        size: 200,
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                      ),
-                      Text(
-                        "No Cards Scanned",
-                        style: textStyle.titleLarge!.copyWith(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                          fontSize: 35,
-                        ),
-                      ),
-                    ],
-                  ),
+                  alignment: AlignmentGeometry.topCenter,
+                  child: currentContent,
                 ),
-
                 //bottom navigation bar
                 Positioned(
                   bottom: bottomMargin,
@@ -128,7 +146,7 @@ class HomeScreen extends StatelessWidget {
                   right: bottomMargin,
                   child: Container(
                     width: width - bottomMargin * 2,
-                    height: 50,
+                    height: bottomNavSize,
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
@@ -148,6 +166,7 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            //change filter type
                             Ink(
                               height: 50,
                               width: 50,
@@ -170,7 +189,7 @@ class HomeScreen extends StatelessWidget {
                                         FontAwesomeIcons.filter,
                                         color: colorScheme.onTertiary
                                             .withValues(alpha: 0.5),
-                                        size: 20,
+                                        size: 25,
                                       ),
                                       Text(
                                         "Filter",
@@ -187,6 +206,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ),
 
+                            //camera (for scanning)
                             Ink(
                               height: 50,
                               width: 50,
@@ -202,7 +222,10 @@ class HomeScreen extends StatelessWidget {
                                   alpha: 0.4,
                                 ),
                                 onTap: () {
-                                  print("camera");
+                                  setState(() {
+                                    currentContentIdx = 1;
+                                    currentTitle = "Scan a Card";
+                                  });
                                 },
                                 child: Center(
                                   child: FaIcon(
@@ -213,6 +236,8 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
+
+                            //Share card (it should say no card selected if there wan't any or the user didn't select cards)
                             Ink(
                               height: 50,
                               width: 50,
@@ -225,20 +250,23 @@ class HomeScreen extends StatelessWidget {
                                   alpha: 0.4,
                                 ),
                                 onTap: () {
-                                  print("Share");
+                                  setState(() {
+                                    currentContentIdx = 0;
+                                    currentTitle = "Card Reader App";
+                                  });
                                 },
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       FaIcon(
-                                        FontAwesomeIcons.shareNodes,
+                                        FontAwesomeIcons.solidIdCard,
                                         color: colorScheme.onTertiary
                                             .withValues(alpha: 0.5),
-                                        size: 20,
+                                        size: 25,
                                       ),
                                       Text(
-                                        "Share",
+                                        "Cards",
                                         style: textStyle.bodyLarge!.copyWith(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
