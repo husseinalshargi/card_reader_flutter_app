@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({
     super.key,
     required this.appbarHeight,
     required this.bottomNavSize,
@@ -10,10 +10,10 @@ class NotificationScreen extends StatefulWidget {
   final double bottomNavSize;
 
   @override
-  State<NotificationScreen> createState() => _NotificationScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _NotificationScreenState extends State<NotificationScreen> {
+class _SettingsScreenState extends State<SettingsScreen> {
   bool isNotified = false;
   @override
   Widget build(BuildContext context) {

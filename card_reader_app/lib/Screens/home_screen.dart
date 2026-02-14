@@ -1,8 +1,8 @@
 import 'package:card_reader_app/Screens/auth_screen.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/cards_screen.dart';
-import 'package:card_reader_app/Screens/notification_screen.dart';
 import 'package:card_reader_app/Screens/scan_screen.dart';
+import 'package:card_reader_app/Screens/settings_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
 import 'package:card_reader_app/Widgets/custom_drawer_button.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
 
       case 2:
-        currentContent = NotificationScreen(
+        currentContent = SettingsScreen(
           appbarHeight: appbar.preferredSize.height,
           bottomNavSize: bottomNavSize,
         );
@@ -218,13 +218,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () {
                                 setState(() {
                                   currentContentIdx = 2;
-                                  currentTitle = "Notification";
+                                  currentTitle = "Settings";
                                 });
                                 // close drawer
                                 Navigator.of(context).pop();
                               },
-                              label: "Notification",
-                              icon: FontAwesomeIcons.solidBell,
+                              label: "Settings",
+                              icon: FontAwesomeIcons.gear,
                             ),
                             const SizedBox(height: 10),
 
