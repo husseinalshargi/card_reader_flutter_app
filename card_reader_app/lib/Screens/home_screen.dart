@@ -1,6 +1,7 @@
 import 'package:card_reader_app/Screens/auth_screen.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/cards_screen.dart';
+import 'package:card_reader_app/Screens/notification_screen.dart';
 import 'package:card_reader_app/Screens/scan_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
 import 'package:card_reader_app/Widgets/custom_drawer_button.dart';
@@ -85,6 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       case 1:
         currentContent = ScanScreen(
+          appbarHeight: appbar.preferredSize.height,
+          bottomNavSize: bottomNavSize,
+        );
+        break;
+
+      case 2:
+        currentContent = NotificationScreen(
           appbarHeight: appbar.preferredSize.height,
           bottomNavSize: bottomNavSize,
         );
@@ -177,8 +185,44 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             const SizedBox(height: 20),
+
                             CustomDrawerButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                setState(() {
+                                  currentContentIdx = 0;
+                                  currentTitle = "Card Reader App";
+                                });
+                                // close drawer
+                                Navigator.of(context).pop();
+                              },
+                              label: "Cards",
+                              icon: FontAwesomeIcons.solidIdCard,
+                            ),
+                            const SizedBox(height: 10),
+
+                            CustomDrawerButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentContentIdx = 1;
+                                  currentTitle = "Scan a Card";
+                                });
+                                // close drawer
+                                Navigator.of(context).pop();
+                              },
+                              label: "Scan a card",
+                              icon: FontAwesomeIcons.cameraRetro,
+                            ),
+                            const SizedBox(height: 10),
+
+                            CustomDrawerButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentContentIdx = 2;
+                                  currentTitle = "Notification";
+                                });
+                                // close drawer
+                                Navigator.of(context).pop();
+                              },
                               label: "Notification",
                               icon: FontAwesomeIcons.solidBell,
                             ),
@@ -195,13 +239,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () {},
                               label: "Rate Us",
                               icon: FontAwesomeIcons.solidStar,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {},
-                              label: "Scan",
-                              icon: FontAwesomeIcons.cameraRetro,
                             ),
                             const SizedBox(height: 10),
 
@@ -296,8 +333,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 // current screen (cards or scan or more)
                 Align(
-                  alignment: AlignmentGeometry.topCenter,
-                  child: currentContent,
+                  alignment: AlignmentGeometry.bottomCenter,
+                  child: SizedBox(
+                    // to make it don't go on top of appbar
+                    height: height - appbar.preferredSize.height * 2,
+                    child: currentContent,
+                  ),
                 ),
                 //bottom navigation bar
                 Positioned(

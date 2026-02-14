@@ -31,7 +31,6 @@ class _ScanScreenState extends State<ScanScreen> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          SizedBox(height: widget.appbarHeight + 5),
           // threshold button and it's description
           Row(
             children: [
