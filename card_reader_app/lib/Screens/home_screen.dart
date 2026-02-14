@@ -244,13 +244,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             CustomDrawerButton(
                               onPressed: () {},
-                              label: "Theme",
-                              icon: FontAwesomeIcons.brush,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {},
                               label: "Privacy",
                               icon: FontAwesomeIcons.lock,
                             ),
