@@ -92,10 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
 
       case 2:
-        currentContent = SettingsScreen(
-          appbarHeight: appbar.preferredSize.height,
-          bottomNavSize: bottomNavSize,
-        );
+        currentContent = const SettingsScreen(bottomNavSize: bottomNavSize);
         break;
 
       default:

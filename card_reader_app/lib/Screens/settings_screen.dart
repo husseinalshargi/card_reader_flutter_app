@@ -2,12 +2,7 @@ import 'package:card_reader_app/Widgets/part_splitter.dart';
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({
-    super.key,
-    required this.appbarHeight,
-    required this.bottomNavSize,
-  });
-  final double appbarHeight;
+  const SettingsScreen({super.key, required this.bottomNavSize});
   final double bottomNavSize;
 
   @override
@@ -26,9 +21,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final bottomMargin = MediaQuery.of(context).padding.bottom;
 
     return SizedBox(
-      width: width - 30,
+      width: width,
       child: ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         children: [
           //notifications part
           const PartSplitter(title: "Notifications"),
