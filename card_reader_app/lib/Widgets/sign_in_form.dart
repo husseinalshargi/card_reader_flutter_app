@@ -65,8 +65,8 @@ class _SignInFormState extends State<SignInForm> {
       // using firebase create an account with the creds
       final userFireBaseCred = await widget.firebaseInstance
           .signInWithCredential(credential);
-      //to save it and retrive the next time the user opens the app
-      await prefs.setBool("KeepSignedIn", isCheckBoxSelected);
+      //keep it true in case of external sign in
+      await prefs.setBool("KeepSignedIn", true);
 
       //set how the user signed in to his account
       await prefs.setString("SignInMethod", AuthMethods.google.name);
@@ -143,8 +143,8 @@ class _SignInFormState extends State<SignInForm> {
       final userFireBaseCred = await widget.firebaseInstance
           .signInWithCredential(facebookAuthCredential);
 
-      //to save it and retrive the next time the user opens the app
-      await prefs.setBool("KeepSignedIn", isCheckBoxSelected);
+      //keep it true in case of external sign in
+      await prefs.setBool("KeepSignedIn", true);
 
       //set how the user signed in to his account
       await prefs.setString("SignInMethod", AuthMethods.facebook.name);
@@ -213,7 +213,7 @@ class _SignInFormState extends State<SignInForm> {
     try {
       await prefs.setBool("KeepSignedIn", isCheckBoxSelected);
       //set how the user signed in to his account
-      await prefs.setString("SignInMethod", AuthMethods.google.name);
+      await prefs.setString("SignInMethod", AuthMethods.emailAndPassword.name);
 
       await widget.firebaseInstance.signInWithEmailAndPassword(
         email: enteredEmail,
@@ -255,7 +255,9 @@ class _SignInFormState extends State<SignInForm> {
               if (value == null ||
                   value.isEmpty ||
                   value.trim().length <= 1 ||
-                  value.trim().length > 70) {
+                  value.trim().length > 70 ||
+                  !value.trim().contains("@") ||
+                  !value.trim().contains(".")) {
                 return "Please Enter a Valid Email";
               }
               return '';

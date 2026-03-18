@@ -48,7 +48,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  //get app the settings (keep me signed in until now)
+  //get app the settings
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   // ensure that the data is updated

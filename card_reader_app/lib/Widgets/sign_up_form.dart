@@ -77,7 +77,8 @@ class _SignUpFormState extends State<SignUpForm> {
 
     //create a name for the user after he is created (this will run lastly after all validations)
     await userCredentials.user!.updateDisplayName(
-      "$enteredFirstName $enteredLastName",
+      //so we could split them with " "
+      "${enteredFirstName.trim()} ${enteredLastName.trim()}",
     );
 
     userCredentials.user!.reload(); //ensure that the values is updated
@@ -113,6 +114,11 @@ class _SignUpFormState extends State<SignUpForm> {
     }
   }
 
+  bool isAlphabetsOnly(String str) {
+    final RegExp regex = RegExp(r'^[a-zA-Z]+$');
+    return regex.hasMatch(str);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -134,6 +140,10 @@ class _SignUpFormState extends State<SignUpForm> {
               if (value.trim().length > 30) {
                 return "First Name Should Have Less than 30 Characters";
               }
+              if (!isAlphabetsOnly(value.trim())) {
+                // if not only alpha
+                return "Name should have only Alphabets without space or any special characters";
+              }
               return '';
             },
             onSaved: (value) {
@@ -154,6 +164,10 @@ class _SignUpFormState extends State<SignUpForm> {
               if (value.trim().length > 30) {
                 return "Last Name Should Have Less than 30 Characters";
               }
+              if (!isAlphabetsOnly(value.trim())) {
+                // if not only alpha
+                return "Name should have only Alphabets without space or any special characters";
+              }
               return '';
             },
             onSaved: (value) {
@@ -167,7 +181,9 @@ class _SignUpFormState extends State<SignUpForm> {
               if (value == null ||
                   value.isEmpty ||
                   value.trim().length <= 1 ||
-                  value.trim().length > 50) {
+                  value.trim().length > 70 ||
+                  !value.trim().contains("@") ||
+                  !value.trim().contains(".")) {
                 return "Please Enter a Valid Email Address";
               }
               return '';

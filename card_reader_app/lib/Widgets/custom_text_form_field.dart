@@ -9,14 +9,18 @@ class CustomTextFormField extends StatefulWidget {
     required this.inputType,
     this.label = '',
     this.fontAwesomeIcon = FontAwesomeIcons.question,
+    this.initialValue = '',
+    this.readOnly = false,
     required this.validator,
     required this.onSaved,
   });
+  final bool readOnly;
   final String label;
   final InputType inputType;
   final IconData fontAwesomeIcon;
   final String Function(String? value) validator;
   final void Function(String value) onSaved;
+  final String initialValue;
 
   @override
   State<CustomTextFormField> createState() => _CustomTextFormFieldState();
@@ -82,6 +86,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             color: colorScheme.primary.withValues(alpha: 0.6),
           ),
           decoration: InputDecoration(
+            errorMaxLines: 3,
             prefix: Padding(
               padding: const EdgeInsets.only(right: 8),
               child: widget.inputType == InputType.password
@@ -141,6 +146,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
               borderRadius: BorderRadius.circular(15),
             ),
           ),
+          initialValue: widget.initialValue,
+          readOnly: widget.readOnly,
         ),
       ),
     );

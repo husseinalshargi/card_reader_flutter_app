@@ -1,6 +1,8 @@
 import 'package:card_reader_app/Screens/auth_screen.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/cards_screen.dart';
+import 'package:card_reader_app/Screens/loading_screen.dart';
+import 'package:card_reader_app/Screens/profile_screen.dart';
 import 'package:card_reader_app/Screens/scan_screen.dart';
 import 'package:card_reader_app/Screens/settings_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
@@ -10,8 +12,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-//get the current user signed in (it will be null if there isn't any user signed in, we could use it to show the auth screen)
-User? currentUser = FirebaseAuth.instance.currentUser;
 const double bottomNavSize = 55;
 
 class HomeScreen extends StatefulWidget {
@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // the currect selected screen to show the user
   int currentContentIdx = 0;
   String currentTitle = "Card Reader App";
+  User? currentUser = FirebaseAuth.instance.currentUser;
 
   void _checkIfUserValidated(BuildContext context) async {
     await currentUser!.reload();
@@ -32,12 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!currentUser!.emailVerified) {
       await Navigator.of(context).push(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => PopScope(
-            canPop: false, //user can't go to the home page (hit back button)
-            child: BackgroundScreen(
-              scaffoldWidget: ValidateEmailScreen(currentUser: currentUser),
-            ),
-          ),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const PopScope(
+                canPop:
+                    false, //user can't go to the home page (hit back button)
+                child: BackgroundScreen(scaffoldWidget: ValidateEmailScreen()),
+              ),
         ),
       );
     }
@@ -48,10 +49,38 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const AuthScreen(),
+              const PopScope(canPop: false, child: AuthScreen()),
         ),
       );
     }
+  }
+
+  @override
+  void initState() {
+    //get the current user signed in (it will be null if there isn't any user signed in, we could use it to show the auth screen)
+    currentUser = FirebaseAuth.instance.currentUser;
+
+    // make sure if the user isn't logged in (he logged out) return the auth page (replace this page). it wont be needed as we have StreamBuilder but just in case
+    _checkIfUserAuthenticated(context);
+
+    // check if the user has a valid email (he validate it)
+    _checkIfUserValidated(context);
+
+    super.initState();
+  }
+
+  String getUserName() {
+    final currentUpdatedUser = FirebaseAuth.instance.currentUser;
+    if (currentUpdatedUser == null) return "Not_Logged_In";
+    final updatedUserName = currentUpdatedUser.displayName;
+    return updatedUserName ?? "A_User";
+  }
+
+  String getUserEmail() {
+    final currentUpdatedUser = FirebaseAuth.instance.currentUser;
+    if (currentUpdatedUser == null) return "Not Logged In";
+    final updatedEmail = currentUpdatedUser.email;
+    return updatedEmail ?? "Not Logged In";
   }
 
   @override
@@ -95,392 +124,393 @@ class _HomeScreenState extends State<HomeScreen> {
         currentContent = const SettingsScreen(bottomNavSize: bottomNavSize);
         break;
 
+      case 3:
+        currentContent = const ProfileScreen();
+        break;
+
       default:
         currentContent = CardsScreen(appBar: appbar);
     }
 
-    // make sure if the user isn't logged in (he logged out) return the auth page (replace this page). it wont be needed as we have StreamBuilder but just in case
-    _checkIfUserAuthenticated(context);
+    return StreamBuilder(
+      // to detect if something happend to the user account like email
+      stream: FirebaseAuth.instance.idTokenChanges(),
+      builder: (context, snapshot) {
+        //this could be used to ensure that the user is logged it or has validated email.. etc (instead of the functions defined before)
+        //example
+        // if (user == null || user.emailVerified == false)
 
-    // check if the user has a valid email (he validate it)
-    _checkIfUserValidated(context);
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const BackgroundScreen(scaffoldWidget: Loadingscreen());
+        }
+        if (!snapshot.hasData) {
+          return const AuthScreen();
+        }
+        // it will be there always as hasdata is handeled before
+        User? user = snapshot.data;
+        // to ensure the user's info is updated (this will ensure the streambuilder notices if the data is changed)
+        user!.reload();
 
-    return Scaffold(
-      drawer: Drawer(
-        backgroundColor: colorScheme.primary,
-        child: SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: Column(
-            children: [
-              //drawer's header
-              Container(
-                width: double.infinity,
-                height: height / 5,
-                decoration: BoxDecoration(color: colorScheme.onSurface),
-                child: Column(
-                  children: [
-                    SizedBox(height: topMargin),
-                    //app title
-                    Text(
-                      "Buisness Card Reader",
-                      textAlign: TextAlign.center,
-                      style: textStyle.titleLarge!.copyWith(
-                        fontSize: 32,
-                        color: colorScheme.surface,
-                      ),
-                    ),
-                    const Expanded(child: SizedBox()),
+        return Scaffold(
+          drawer: Drawer(
+            backgroundColor: colorScheme.primary,
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: Column(
+                children: [
+                  //drawer's header (used for accounts header)
+                  UserAccountsDrawerHeader(
+                    currentAccountPictureSize: const Size(0, 0),
+                    otherAccountsPicturesSize: const Size(0, 0),
+                    //as it will return a string that has "_" in it
+                    accountName: Text(getUserName().split("_").join(" ")),
+                    accountEmail: Text(getUserEmail()),
+                  ),
 
-                    //user's name
-                    SizedBox(
-                      width: double.infinity,
+                  //drawer's body
+                  Expanded(
+                    child: SizedBox(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          "Hello, ${currentUser!.displayName ?? "App User"}.",
-                          textAlign: TextAlign.start,
-                          style: textStyle.titleLarge!.copyWith(
-                            fontSize: 15,
-                            color: colorScheme.surface,
-                          ),
+                        padding: const EdgeInsetsGeometry.symmetric(
+                          horizontal: 20,
                         ),
-                      ),
-                    ),
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 20),
 
-                    const SizedBox(height: 5),
-
-                    //user's email
-                    SizedBox(
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          currentUser!.email ?? "No Email Found",
-                          textAlign: TextAlign.start,
-                          style: textStyle.titleLarge!.copyWith(
-                            fontSize: 15,
-                            color: colorScheme.surface,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-
-              //drawer's body
-              SizedBox(
-                height: (height / 5) * 4 - bottomMargin,
-                child: Padding(
-                  padding: const EdgeInsetsGeometry.symmetric(horizontal: 20),
-                  child: CustomScrollView(
-                    slivers: [
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-
-                            CustomDrawerButton(
-                              onPressed: () {
-                                setState(() {
-                                  currentContentIdx = 0;
-                                  currentTitle = "Card Reader App";
-                                });
-                                // close drawer
-                                Navigator.of(context).pop();
-                              },
-                              label: "Cards",
-                              icon: FontAwesomeIcons.solidIdCard,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {
-                                setState(() {
-                                  currentContentIdx = 1;
-                                  currentTitle = "Scan a Card";
-                                });
-                                // close drawer
-                                Navigator.of(context).pop();
-                              },
-                              label: "Scan a card",
-                              icon: FontAwesomeIcons.cameraRetro,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {
-                                setState(() {
-                                  currentContentIdx = 2;
-                                  currentTitle = "Settings";
-                                });
-                                // close drawer
-                                Navigator.of(context).pop();
-                              },
-                              label: "Settings",
-                              icon: FontAwesomeIcons.gear,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {},
-                              label: "Profile",
-                              icon: FontAwesomeIcons.solidUser,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {},
-                              label: "Rate Us",
-                              icon: FontAwesomeIcons.solidStar,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () {},
-                              label: "Privacy",
-                              icon: FontAwesomeIcons.lock,
-                            ),
-                            const SizedBox(height: 10),
-
-                            CustomDrawerButton(
-                              onPressed: () async {
-                                // present confirm button before signing the user out
-                                if (await confirm(
-                                  context,
-                                  title: Text(
-                                    "Confirm",
-                                    style: textStyle.titleLarge!.copyWith(
-                                      color: colorScheme.secondary,
-                                    ),
+                                  CustomDrawerButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        currentContentIdx = 0;
+                                        currentTitle = "Card Reader App";
+                                      });
+                                      // close drawer
+                                      Navigator.of(context).pop();
+                                    },
+                                    label: "Cards",
+                                    icon: FontAwesomeIcons.solidIdCard,
                                   ),
-                                  content: Text(
-                                    "Are you sure you want to sign out?",
-                                    style: textStyle.titleSmall!.copyWith(
-                                      color: colorScheme.primary,
-                                    ),
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        currentContentIdx = 1;
+                                        currentTitle = "Scan a Card";
+                                      });
+                                      // close drawer
+                                      Navigator.of(context).pop();
+                                    },
+                                    label: "Scan a card",
+                                    icon: FontAwesomeIcons.cameraRetro,
                                   ),
-                                  textOK: const Text("Sign Out"),
-                                  textCancel: const Text("Cancel"),
-                                )) {
-                                  await FirebaseAuth.instance.signOut();
-                                  Navigator.of(context).pop();
-                                }
-                                {
-                                  // do nothing otherwise
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              label: "Log Out",
-                              icon: FontAwesomeIcons.arrowRightFromBracket,
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        currentContentIdx = 2;
+                                        currentTitle = "Settings";
+                                      });
+                                      // close drawer
+                                      Navigator.of(context).pop();
+                                    },
+                                    label: "Settings",
+                                    icon: FontAwesomeIcons.gear,
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        PageRouteBuilder(
+                                          pageBuilder:
+                                              (
+                                                context,
+                                                animation,
+                                                secondaryAnimation,
+                                              ) => const ProfileScreen(),
+                                        ),
+                                      );
+                                    },
+                                    label: "Profile",
+                                    icon: FontAwesomeIcons.solidUser,
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () {},
+                                    label: "Rate Us",
+                                    icon: FontAwesomeIcons.solidStar,
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () {},
+                                    label: "Privacy",
+                                    icon: FontAwesomeIcons.lock,
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  CustomDrawerButton(
+                                    onPressed: () async {
+                                      // present confirm button before signing the user out
+                                      if (await confirm(
+                                        context,
+                                        title: Text(
+                                          "Confirm",
+                                          style: textStyle.titleLarge!.copyWith(
+                                            color: colorScheme.secondary,
+                                          ),
+                                        ),
+                                        content: Text(
+                                          "Are you sure you want to sign out?",
+                                          style: textStyle.titleSmall!.copyWith(
+                                            color: colorScheme.primary,
+                                          ),
+                                        ),
+                                        textOK: const Text("Sign Out"),
+                                        textCancel: const Text("Cancel"),
+                                      )) {
+                                        await FirebaseAuth.instance.signOut();
+                                      } else {
+                                        // do nothing otherwise
+                                        Navigator.of(context).pop();
+                                      }
+                                    },
+                                    label: "Log Out",
+                                    icon:
+                                        FontAwesomeIcons.arrowRightFromBracket,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          extendBodyBehindAppBar: true,
+          appBar: appbar,
+          backgroundColor: Colors.transparent,
+          resizeToAvoidBottomInset: true,
+          body: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topMargin),
+                  child: Container(
+                    width: width,
+                    alignment: Alignment.bottomCenter,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(18),
+                        topRight: Radius.circular(18),
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        //line dividing app bar
+                        Positioned(
+                          top: appbar.preferredSize.height,
+                          left: 20,
+                          child: Container(
+                            width: width - 40,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: colorScheme.secondary.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // current screen (cards or scan or more)
+                        Align(
+                          alignment: AlignmentGeometry.bottomCenter,
+                          child: SizedBox(
+                            // to make it don't go on top of appbar
+                            height: height - appbar.preferredSize.height * 2,
+                            child: currentContent,
+                          ),
+                        ),
+                        //bottom navigation bar
+                        Positioned(
+                          bottom: bottomMargin,
+                          left: bottomMargin,
+                          right: bottomMargin,
+                          child: Container(
+                            width: width - bottomMargin * 2,
+                            height: bottomNavSize,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                ),
+                              ],
+                              color: colorScheme.onPrimary,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    //change filter type
+                                    Ink(
+                                      height: 50,
+                                      width: 50,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(50),
+                                        splashColor: colorScheme.onPrimary
+                                            .withValues(alpha: 0.4),
+                                        onTap: () {
+                                          print("Filter");
+                                        },
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              FaIcon(
+                                                FontAwesomeIcons.filter,
+                                                color: colorScheme.onTertiary
+                                                    .withValues(alpha: 0.5),
+                                                size: 25,
+                                              ),
+                                              Text(
+                                                "Filter",
+                                                style: textStyle.bodyLarge!
+                                                    .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 13,
+                                                      color: colorScheme
+                                                          .onTertiary
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    //camera (for scanning)
+                                    Ink(
+                                      height: 50,
+                                      width: 50,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: colorScheme.onTertiary
+                                            .withValues(alpha: 0.5),
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(50),
+                                        splashColor: colorScheme.onPrimary
+                                            .withValues(alpha: 0.4),
+                                        onTap: () {
+                                          setState(() {
+                                            currentContentIdx = 1;
+                                            currentTitle = "Scan a Card";
+                                          });
+                                        },
+                                        child: Center(
+                                          child: FaIcon(
+                                            FontAwesomeIcons.cameraRetro,
+                                            size: 30,
+                                            color: colorScheme.onPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    //Share card (it should say no card selected if there wan't any or the user didn't select cards)
+                                    Ink(
+                                      height: 50,
+                                      width: 50,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(50),
+                                        splashColor: colorScheme.onPrimary
+                                            .withValues(alpha: 0.4),
+                                        onTap: () {
+                                          setState(() {
+                                            currentContentIdx = 0;
+                                            currentTitle = "Card Reader App";
+                                          });
+                                        },
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              FaIcon(
+                                                FontAwesomeIcons.solidIdCard,
+                                                color: colorScheme.onTertiary
+                                                    .withValues(alpha: 0.5),
+                                                size: 25,
+                                              ),
+                                              Text(
+                                                "Cards",
+                                                style: textStyle.bodyLarge!
+                                                    .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 13,
+                                                      color: colorScheme
+                                                          .onTertiary
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
-      extendBodyBehindAppBar: true,
-      appBar: appbar,
-      backgroundColor: Colors.transparent,
-      resizeToAvoidBottomInset: true,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Container(
-            height: height - topMargin,
-            width: width,
-            alignment: Alignment.bottomCenter,
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-              ),
-            ),
-            child: Stack(
-              children: [
-                //line dividing app bar
-                Positioned(
-                  top: appbar.preferredSize.height,
-                  left: 20,
-                  child: Container(
-                    width: width - 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: colorScheme.secondary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-                // current screen (cards or scan or more)
-                Align(
-                  alignment: AlignmentGeometry.bottomCenter,
-                  child: SizedBox(
-                    // to make it don't go on top of appbar
-                    height: height - appbar.preferredSize.height * 2,
-                    child: currentContent,
-                  ),
-                ),
-                //bottom navigation bar
-                Positioned(
-                  bottom: bottomMargin,
-                  left: bottomMargin,
-                  right: bottomMargin,
-                  child: Container(
-                    width: width - bottomMargin * 2,
-                    height: bottomNavSize,
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          offset: const Offset(0, 4),
-                          blurRadius: 4,
-                          color: Colors.black.withValues(alpha: 0.25),
-                        ),
-                      ],
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            //change filter type
-                            Ink(
-                              height: 50,
-                              width: 50,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(50),
-                                splashColor: colorScheme.onPrimary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                onTap: () {
-                                  print("Filter");
-                                },
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      FaIcon(
-                                        FontAwesomeIcons.filter,
-                                        color: colorScheme.onTertiary
-                                            .withValues(alpha: 0.5),
-                                        size: 25,
-                                      ),
-                                      Text(
-                                        "Filter",
-                                        style: textStyle.bodyLarge!.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: colorScheme.onTertiary
-                                              .withValues(alpha: 0.5),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            //camera (for scanning)
-                            Ink(
-                              height: 50,
-                              width: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: colorScheme.onTertiary.withValues(
-                                  alpha: 0.5,
-                                ),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(50),
-                                splashColor: colorScheme.onPrimary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    currentContentIdx = 1;
-                                    currentTitle = "Scan a Card";
-                                  });
-                                },
-                                child: Center(
-                                  child: FaIcon(
-                                    FontAwesomeIcons.cameraRetro,
-                                    size: 30,
-                                    color: colorScheme.onPrimary,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            //Share card (it should say no card selected if there wan't any or the user didn't select cards)
-                            Ink(
-                              height: 50,
-                              width: 50,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(50),
-                                splashColor: colorScheme.onPrimary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    currentContentIdx = 0;
-                                    currentTitle = "Card Reader App";
-                                  });
-                                },
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      FaIcon(
-                                        FontAwesomeIcons.solidIdCard,
-                                        color: colorScheme.onTertiary
-                                            .withValues(alpha: 0.5),
-                                        size: 25,
-                                      ),
-                                      Text(
-                                        "Cards",
-                                        style: textStyle.bodyLarge!.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: colorScheme.onTertiary
-                                              .withValues(alpha: 0.5),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

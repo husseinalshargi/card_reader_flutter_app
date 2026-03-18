@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:card_reader_app/Screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ValidateEmailScreen extends StatefulWidget {
-  const ValidateEmailScreen({super.key, required this.currentUser});
-  final User? currentUser;
+  const ValidateEmailScreen({super.key});
 
   @override
   State<ValidateEmailScreen> createState() => _ValidateEmailScreenState();
@@ -18,15 +16,21 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
   bool isDisabled = false;
   Widget? timerCountDown;
   late Timer _verificationCheckTimer;
+  final currentUser = FirebaseAuth.instance.currentUser;
 
   //checks if the user is email is verified
   void startPeriodicVerificationCheck() {
-    _verificationCheckTimer = Timer.periodic(const Duration(seconds: 5), (
+    _verificationCheckTimer = Timer.periodic(const Duration(seconds: 10), (
       timer,
     ) async {
-      await currentUser!.reload();
-      if (currentUser!.emailVerified) {
+      //get a new instance of the current user to ensure that it is updated
+      final newUserInstance = FirebaseAuth.instance.currentUser;
+      if (newUserInstance == null) return;
+
+      await newUserInstance.reload();
+      if (newUserInstance.emailVerified) {
         _verificationCheckTimer.cancel();
+        if (!mounted) return;
         Navigator.of(context).pop();
       }
     });
@@ -34,17 +38,43 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
 
   //to make the user press a button to ensure the app detect
   void ensureVerification() async {
-    await currentUser!.reload();
-    if (currentUser!.emailVerified) {
+    //get a new instance of the current user to ensure that it is updated
+    final newUserInstance = FirebaseAuth.instance.currentUser;
+    if (newUserInstance == null) return;
+
+    await newUserInstance.reload();
+    if (newUserInstance.emailVerified) {
       _verificationCheckTimer.cancel();
+      if (!mounted) return;
       Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          showCloseIcon: true,
+          closeIconColor: Colors.red.shade50,
+          content: const Text(
+            "Email isn't verified try again after the cooldown or wait until the app checks",
+            maxLines: 3,
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
+      );
     }
   }
 
   @override
   void initState() {
-    startPeriodicVerificationCheck();
     super.initState();
+
+    // this will instead start when the user press send email verfication as it will only be sent then
+    // but it kept for future use (the widget binding when using a async method)
+    // // schedules the functions to run after the first frame
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   // if it isn't in the current screen (popped or something)
+    //   if (!mounted) return;
+    //   startPeriodicVerificationCheck();
+    // });
   }
 
   void disableVerificationButton() {
@@ -117,7 +147,7 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
                       horizontal: 20,
                     ),
                     child: Text(
-                      "An Email Verification is Sent to Your Email, Validate It to Gain Access to Your Card Reading App",
+                      "Email Verification Sent to ${currentUser!.email}.\nValidate It to Gain Access to Your Card Reading App",
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleLarge!.copyWith(
                         color: colorScheme.primary.withValues(alpha: 0.8),
@@ -134,6 +164,8 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
                             disableVerificationButton();
                             try {
                               await currentUser!.sendEmailVerification();
+                              // this will start the verification check after the first send email verfication
+                              startPeriodicVerificationCheck();
                               ScaffoldMessenger.of(context).clearSnackBars();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -156,7 +188,8 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
                                   showCloseIcon: true,
                                   closeIconColor: colorScheme.surface,
                                   content: Text(
-                                    "Something Went Wrong, Verification email Can't be sent, make sure your email is correct or try again later.",
+                                    "Something Went Wrong, Verification email Can't be sent, make sure your email is correct or try again later. $error",
+                                    maxLines: 3,
                                     style: TextStyle(
                                       color: colorScheme.surface,
                                     ),

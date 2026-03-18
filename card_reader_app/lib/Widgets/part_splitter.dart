@@ -13,7 +13,7 @@ class PartSplitter extends StatelessWidget {
     return SizedBox(
       width: width,
       child: Padding(
-        padding: const EdgeInsetsGeometry.only(top: 15, left: 5, right: 5),
+        padding: const EdgeInsetsGeometry.only(top: 10, left: 5, right: 5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
