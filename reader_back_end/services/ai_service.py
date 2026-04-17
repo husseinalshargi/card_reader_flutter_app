@@ -46,15 +46,12 @@ class AIService:
         Classes:
             - full_name
             - phone_number
-            - telephone_number
             - web_site
             - company_name
             - email
             - address
             - job_title
-            - department
             - city
-            - state
             - country
 
         -----
@@ -69,7 +66,6 @@ class AIService:
         {{
             "full_name": "",
             "phone_number": "",
-            "telephone_number": "",
             "web_site": "",
             "company_name": "",
             "email": "",
@@ -77,7 +73,7 @@ class AIService:
             "job_title": "",
             "department": "",
             "city": "",
-            "state": "",
+            "country": "",
         }}
 
         """
@@ -113,15 +109,12 @@ class AIService:
         classes:
             - full_name
             - phone_number
-            - telephone_number
             - web_site
             - company_name
             - email
             - address
             - job_title
-            - department
             - city
-            - state
             - country
         """
         try:
@@ -134,18 +127,6 @@ class AIService:
         except Exception as e:
             print(f'error in parsing to json {e}')
             return {}
-        
-        #convert numbers to int
-        try:
-            response_dict['phone_number'] = response_dict['phone_number']
-        except Exception as e:
-            print("error in converting phone number to an int")
-        
-        try:
-            response_dict['telephone_number'] = response_dict['telephone_number']
-        except Exception as e:
-            print("error in converting telephone number to an int")
-
         
         return response_dict
         
