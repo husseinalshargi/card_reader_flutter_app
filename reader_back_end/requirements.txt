@@ -9,8 +9,8 @@ imutils
 #OCR
 easyocr
 
-#to use gpu
---extra-index-url https://download.pytorch.org/whl/cu129
+#to use gpu (based on your cuda's version)
+--extra-index-url https://download.pytorch.org/whl/cu130
 torch
 torchvision
 
@@ -30,3 +30,5 @@ python-multipart
 #redis storage
 redis[hiredis]
 
+#use firebase
+firebase_admin

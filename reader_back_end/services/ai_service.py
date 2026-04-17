@@ -12,6 +12,9 @@ class AIService:
     if torch.cuda.is_available():
         print('cuda available')
         gpu = True
+    else:
+        print('cuda not available')
+
     
     def __init__(self, llm: OllamaLLM):
         self.set_up_prompts()
@@ -134,12 +137,12 @@ class AIService:
         
         #convert numbers to int
         try:
-            response_dict['phone_number'] = int(response_dict['phone_number'])
+            response_dict['phone_number'] = response_dict['phone_number']
         except Exception as e:
             print("error in converting phone number to an int")
         
         try:
-            response_dict['telephone_number'] = int(response_dict['telephone_number'])
+            response_dict['telephone_number'] = response_dict['telephone_number']
         except Exception as e:
             print("error in converting telephone number to an int")
 
