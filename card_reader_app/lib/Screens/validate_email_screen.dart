@@ -189,7 +189,7 @@ class _ValidateEmailScreenState extends State<ValidateEmailScreen> {
                                   closeIconColor: colorScheme.surface,
                                   content: Text(
                                     "Something Went Wrong, Verification email Can't be sent, make sure your email is correct or try again later. $error",
-                                    maxLines: 3,
+                                    maxLines: 5,
                                     style: TextStyle(
                                       color: colorScheme.surface,
                                     ),

@@ -60,5 +60,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Photos library access is required to scan cards</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Camera access is required to scan cards</string>
 	</dict>
 </plist>
