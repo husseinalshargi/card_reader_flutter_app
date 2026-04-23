@@ -1,5 +1,7 @@
+from typing import Annotated, List
+
 from langchain_ollama import OllamaLLM
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
+from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, Depends, status
 
 from reader_back_end.database_connections.firebase_db import Firebase_db
 from reader_back_end.services.card_reader import CardReader
@@ -13,20 +15,20 @@ try:
     
     app = FastAPI()
 
-    print("\n=== initalizing redis db ===")
+    print("\n=== initializing redis db ===")
     rdb = Redis_db()
     print('=== redis db initialized ===')
 
-    print("\n=== initalizing firebase ===")
+    print("\n=== initializing firebase ===")
     fdb = Firebase_db()
     print('=== firebase initialized ===')
 
     #setup the llm instance
-    print("\n=== initalizing ollama model ===")
+    print("\n=== initializing ollama model ===")
     llm = OllamaLLM(model = Config.llm_model)
-    print("=== initalizing ollama model ===")
+    print("=== initializing ollama model ===")
 
-    print('\n=== initalizing card reader ===')
+    print('\n=== initializing card reader ===')
     #setup the class that has the process of reading card details
     card_reader = CardReader(llm)
     print('=== card reader initialized ===')
@@ -44,22 +46,29 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
                             is_binarized: bool = Form(...),
                             is_extracted: bool = Form(...),
                             language: str = Form('en'),
-                            image: UploadFile = File(...)):
+                            # docs website for the api won't support this for some reason it will act strangely so you should use postman
+                            images: List[UploadFile] = File(...)):
     
     # now before doing anything the user id will be used to rate limit 
-    # the function will return a bool indcating whether the user is under limit or not (currently 3 requests per minute)
+    # the function will return a bool indicating whether the user is under limit or not (currently 3 requests per minute)
     is_request_under_limit: bool = rdb.api_limiter(uid= decoded_JWT["uid"])
+
+    if not is_request_under_limit:
+        raise HTTPException(status_code= status.HTTP_429_TOO_MANY_REQUESTS, detail= "To many requests")
+
+    if len(images) > 2 or len(images) < 1:
+        raise HTTPException(status_code= 400, detail= "No images to be processed or more than 2 images has been submitted")
 
 
     #read the image content (in bytes)
-    img_content = await image.read()
+    images_content = [await img.read() for img in images]
 
     #as easy ocr in case of other languages it require them to be in the second place after 'en'
     languages_list = ['en'] if language.strip().lower() == 'en' else ['en', language.strip().lower()]
 
 
     #return the values in dict form 
-    card_details = card_reader.read_card(img_content, is_binarized, is_extracted, languages_list)
+    card_details = card_reader.read_card(images_content, is_binarized, is_extracted, languages_list)
 
     return card_details
 

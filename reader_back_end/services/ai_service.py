@@ -1,4 +1,5 @@
 import json
+from typing import List
 from easyocr import Reader
 import torch
 from langchain_core.prompts import PromptTemplate
@@ -33,7 +34,7 @@ class AIService:
             - Do not correct words if you are uncertain of their meaning. 
             - Do not correct Names.
             - Do not correct numbers.
-            - If a word contains a number in the middle, then correct it with a character instead of the number, whether it is a name or not. 
+            - If a word contains a number in the middle, then replace it with a character instead of the number.
             - You must classify each part of the extracted text, even if uncertain 
             - Do not hallucinate.
             - In case you are uncertain of the class, then just include it anywhere that might be related. 
@@ -41,7 +42,7 @@ class AIService:
             - Output MUST have all classes even in case of it is empty.
             - Output MUST be a single JSON object, no comments, no extra text.
             - phone_number and telephone_number must be only numbers, no '+', '-' or other characters only numbers.
-            - if there is more info than the classes you could add relavent text in the same class.
+            - if there is more info than the classes you could add relevant text in the same class.
 
         Classes:
             - full_name
@@ -131,11 +132,13 @@ class AIService:
         return response_dict
         
     
-    def extract_final_text(self, img: cv.typing.MatLike, languages_list: list[str] = ['en']) -> dict[str, str]:
+    def extract_final_text(self, imgs: List[cv.typing.MatLike], languages_list: list[str] = ['en']) -> dict[str, str]:
         """extract the final text from the image"""
+        extracted_words_list = []
 
-        # extract text using ocr
-        extracted_words_list = self.read_image(img, languages_list)
+        for img in imgs:
+            # extract text using ocr
+            extracted_words_list.extend(self.read_image(img, languages_list))
 
         # convert easyocr list of strings to a single string to pass it to the llm
         string_text = self.set_up_results(extracted_words_list)
