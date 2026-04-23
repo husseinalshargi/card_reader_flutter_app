@@ -1,8 +1,10 @@
+import 'package:card_reader_app/Data/Providers/scan_request_notifier.dart';
 import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/take_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({
     super.key,
     required this.appbarHeight,
@@ -12,15 +14,20 @@ class ScanScreen extends StatefulWidget {
   final double bottomNavSize;
 
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  ConsumerState<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends ConsumerState<ScanScreen> {
   bool isThresholdUsed = false;
   bool isSmartCropUsed = false;
 
   @override
   Widget build(BuildContext context) {
+    // ref is used inside build function
+    // to use the scan request provider to save the images and options before the request
+    //this will rebuild the widget when it is affected (watch) but (read) wont
+    final scanRequest = ref.watch(scanRequestProvider);
+
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme;
     final width = MediaQuery.sizeOf(context).width;
@@ -45,6 +52,10 @@ class _ScanScreenState extends State<ScanScreen> {
                   setState(() {
                     isThresholdUsed = newThresholdValue;
                   });
+                  // set the isThreshold in the notifier
+                  ref
+                      .read(scanRequestProvider.notifier)
+                      .updateScanRequest(isThresholdUsed: newThresholdValue);
                 },
               ),
               const SizedBox(width: 20),
@@ -93,6 +104,10 @@ class _ScanScreenState extends State<ScanScreen> {
                   setState(() {
                     isSmartCropUsed = newSmartCropValue;
                   });
+                  // set the isThreshold in the notifier
+                  ref
+                      .read(scanRequestProvider.notifier)
+                      .updateScanRequest(isSmartCropUsed: newSmartCropValue);
                 },
               ),
               const SizedBox(width: 20),
@@ -129,14 +144,55 @@ class _ScanScreenState extends State<ScanScreen> {
           const SizedBox(height: 10),
 
           // start of the scanning boxes
-          const TakeImage(title: "Front Side of the Card"),
+          const TakeImage(title: "Front Side of the Card", isFrontOfCard: true),
           const SizedBox(height: 10),
-          const TakeImage(title: "Back Side of the Card"),
+          const TakeImage(title: "Back Side of the Card", isFrontOfCard: false),
 
           // scan the card, it takes the images taken 1 maybe 2 then sends it to the backend to be scanned which then it will return the info back to be saved in a new card object
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15),
-            child: CustomSubmitButton(onTap: () {}, title: "Scan"),
+            child: CustomSubmitButton(
+              onTap: () {
+                final firstImageXFile = ref
+                    .read(scanRequestProvider)
+                    .firstImageXFile;
+
+                final secondImageXFile = ref
+                    .read(scanRequestProvider)
+                    .secondImageXFile;
+
+                if (firstImageXFile == null && secondImageXFile == null) {
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: colorScheme.error,
+                      showCloseIcon: true,
+                      closeIconColor: colorScheme.surface,
+                      content: Text(
+                        "You should at least select an image to scan",
+                        style: TextStyle(color: colorScheme.surface),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+
+                  return;
+                }
+                print(
+                  scanRequest.firstImageXFile == null
+                      ? "null"
+                      : scanRequest.firstImageXFile!.name,
+                );
+                print(
+                  scanRequest.secondImageXFile == null
+                      ? "null"
+                      : scanRequest.secondImageXFile!.name,
+                );
+                print(scanRequest.isThresholdUsed);
+                print(scanRequest.isSmartCropUsed);
+              },
+              title: "Scan",
+            ),
           ),
 
           // sized box with the same size as the bottom nav bar to add padding in the bottom also the bottom margin (button used to get out of the app)

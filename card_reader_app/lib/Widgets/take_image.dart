@@ -1,19 +1,27 @@
 import 'dart:typed_data';
 
+import 'package:card_reader_app/Data/Providers/scan_request_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
-class TakeImage extends StatefulWidget {
-  const TakeImage({super.key, required this.title});
+class TakeImage extends ConsumerStatefulWidget {
+  const TakeImage({
+    super.key,
+    required this.title,
+    required this.isFrontOfCard,
+  });
   final String title;
+
+  final bool isFrontOfCard;
+
   @override
-  State<TakeImage> createState() => _TakeImageState();
+  ConsumerState<TakeImage> createState() => _TakeImageState();
 }
 
-class _TakeImageState extends State<TakeImage> {
+class _TakeImageState extends ConsumerState<TakeImage> {
   final ImagePicker picker = ImagePicker();
-  Image? currentImageTaken;
 
   // part of the function is taken from the image picker docs
   Future<void> _onImageButtonPressed(
@@ -29,12 +37,16 @@ class _TakeImageState extends State<TakeImage> {
         //make sure the user selected an image otherwise just return from the function
         if (pickedFile == null) return;
 
-        //read the image as bytes which will be converted to an image that will be displayed in the screen
-        final Uint8List bytes = await pickedFile.readAsBytes();
-        final Image imageFromXFile = Image.memory(bytes);
-        setState(() {
-          currentImageTaken = imageFromXFile;
-        });
+        //save the image in the scan request provider based on what part of the card this is
+        if (widget.isFrontOfCard) {
+          ref
+              .read(scanRequestProvider.notifier)
+              .updateScanRequest(firstImageXFile: pickedFile);
+        } else {
+          ref
+              .read(scanRequestProvider.notifier)
+              .updateScanRequest(secondImageXFile: pickedFile);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,6 +67,15 @@ class _TakeImageState extends State<TakeImage> {
 
   @override
   Widget build(BuildContext context) {
+    // ref is used inside build function
+    // to use the scan request provider to save the images and options before the request
+    //this will rebuild the widget when it is affected
+    final scanRequest = ref.watch(scanRequestProvider);
+
+    XFile? currentXFile = widget.isFrontOfCard
+        ? scanRequest.firstImageXFile
+        : scanRequest.secondImageXFile;
+
     final height = MediaQuery.sizeOf(context).height;
     final width = MediaQuery.sizeOf(context).width;
     final colorScheme = Theme.of(context).colorScheme;
@@ -117,9 +138,10 @@ class _TakeImageState extends State<TakeImage> {
                                     children: [
                                       TextButton(
                                         style: TextButton.styleFrom(
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.5),
                                           foregroundColor: Theme.of(
                                             context,
                                           ).colorScheme.surface,
@@ -148,7 +170,7 @@ class _TakeImageState extends State<TakeImage> {
                                                   context,
                                                 ).colorScheme.surface,
                                                 content: Text(
-                                                  "Can't take an image, check permessions",
+                                                  "Can't take an image, check permissions",
                                                   style: TextStyle(
                                                     color: Theme.of(
                                                       context,
@@ -166,9 +188,10 @@ class _TakeImageState extends State<TakeImage> {
                                       const SizedBox(width: 5),
                                       TextButton(
                                         style: TextButton.styleFrom(
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.50),
                                           foregroundColor: Theme.of(
                                             context,
                                           ).colorScheme.surface,
@@ -197,7 +220,7 @@ class _TakeImageState extends State<TakeImage> {
                                                   context,
                                                 ).colorScheme.surface,
                                                 content: Text(
-                                                  "Can't choose an iimage from gallery, check permessions",
+                                                  "Can't choose an image from gallery, check permissions",
                                                   style: TextStyle(
                                                     color: Theme.of(
                                                       context,
@@ -212,6 +235,28 @@ class _TakeImageState extends State<TakeImage> {
                                         },
                                         child: const Text('Gallery'),
                                       ),
+                                      const SizedBox(width: 5),
+                                      // this will make it based on this widget not all widgets (check if the current mode is null)
+                                      if ((scanRequest.firstImageXFile !=
+                                                  null &&
+                                              widget.isFrontOfCard) ||
+                                          (scanRequest.secondImageXFile !=
+                                                  null &&
+                                              !widget.isFrontOfCard))
+                                        TextButton(
+                                          onPressed: () {
+                                            ref
+                                                .read(
+                                                  scanRequestProvider.notifier,
+                                                )
+                                                .removeImage(
+                                                  widget.isFrontOfCard,
+                                                );
+
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('remove'),
+                                        ),
                                       const SizedBox(width: 5),
                                       TextButton(
                                         onPressed: () {
@@ -234,30 +279,63 @@ class _TakeImageState extends State<TakeImage> {
                       child: SizedBox(
                         width: width / 2,
                         height: height / 5,
-                        child:
-                            currentImageTaken ??
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  FontAwesomeIcons.solidCamera,
-                                  size: width / 4,
-                                  color: Colors.black26,
-                                ),
-                                Text(
-                                  "Tap to Take an Image or to Choose from Gallery",
-                                  style: textStyle.titleSmall!.copyWith(
-                                    fontSize: 15,
+                        child: currentXFile != null
+                            ? FutureBuilder(
+                                //read the image as bytes which will be converted to an image that will be displayed in the screen
+                                future: currentXFile.readAsBytes(),
+                                builder:
+                                    (
+                                      BuildContext context,
+                                      AsyncSnapshot<Uint8List> snapshot,
+                                    ) {
+                                      //while waiting for the image to been shown, show a progress indicator
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Center(
+                                          child: CircularProgressIndicator(),
+                                        );
+                                      }
+                                      // if the image for some reason is null (it got after the first null cheeking)
+                                      if (!snapshot.hasData) {
+                                        return const Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons
+                                                  .image_not_supported_outlined,
+                                            ),
+                                            Text("Image can't be shown"),
+                                          ],
+                                        );
+                                      }
+                                      return Image.memory(snapshot.data!);
+                                    },
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    FontAwesomeIcons.solidCamera,
+                                    size: width / 4,
                                     color: Colors.black26,
                                   ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.visible,
-                                  softWrap: true,
-                                ),
-                              ],
-                            ),
+                                  Text(
+                                    "Tap to Take an Image or to Choose from Gallery",
+                                    style: textStyle.titleSmall!.copyWith(
+                                      fontSize: 15,
+                                      color: Colors.black26,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.visible,
+                                    softWrap: true,
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                   ),

@@ -1,3 +1,4 @@
 reader_back_end/venv
 reader_back_end/.env
 reader_back_end/firebase_sdk_cred
+.vscode
