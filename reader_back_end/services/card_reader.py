@@ -1,17 +1,19 @@
 from typing import List
 
 import cv2 
+from google import genai
 from langchain_ollama import OllamaLLM
 import numpy as np
 
-from reader_back_end.services.image_pre_processor import ImagePreProcessor
 from reader_back_end.services.ai_service import AIService
+from reader_back_end.services.image_pre_processor import ImagePreProcessor
+from reader_back_end.settings.config import Config
 
 
 class CardReader:
-    def __init__(self, llm: OllamaLLM):
-        self.image_pre_processor = ImagePreProcessor()
-        self.ai_service = AIService(llm)
+    def __init__(self):
+        self.ai_service = AIService()
+
     
     def read_image(self, img_bytes: bytes) -> cv2.typing.MatLike:
         """Reads an image (it will read the image in bytes and convert it to an open cv img object)"""
@@ -22,17 +24,17 @@ class CardReader:
 
 
 
-    def read_card(self, images_bytes: List[bytes], is_binarized: bool, is_extracted: bool, languages_list: list[str]) -> dict[str, str]:
+    def read_card(self, images_bytes: List[bytes], is_binarized: bool, is_extracted: bool) -> dict[str, str]:
         """combine all services to read the card content (could be used for the api)"""
 
         #read the original image
         imgs = [self.read_image(img_bytes) for img_bytes in images_bytes]
 
         #pre-process the image
-        processed_images = [self.image_pre_processor.process_image(img, is_binarized, is_extracted) for img in imgs]
+        processed_images = [ImagePreProcessor.process_image(img, is_binarized, is_extracted) for img in imgs]
 
         #get the final content of the card in dict format with all the classes
-        card_content = self.ai_service.extract_final_text(processed_images, languages_list)
+        card_content = self.ai_service.extract_final_text(processed_images)
 
         return card_content
 

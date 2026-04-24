@@ -17,3 +17,6 @@ class Config:
 
     #path of the firebase sdk json file
     firebase_sdk_cred_path = os.environ.get('FIREBASE_CRED_PATH')
+
+    # gemini api key for connection
+    GEMINI_KEY = os.environ.get('GEMINI_API_KEY')

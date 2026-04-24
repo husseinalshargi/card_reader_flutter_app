@@ -6,13 +6,12 @@ import imutils
 
 class ImagePreProcessor:
 
-
-    def adaptive_gausian(self, img: cv.typing.MatLike) -> cv.typing.MatLike:
+    def adaptive_gausian(img: cv.typing.MatLike) -> cv.typing.MatLike:
         """binarization using adaptive gausian method"""
         adaptive_gausian_img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 9)
         return adaptive_gausian_img
 
-    def scale_image(self, img: cv.typing.MatLike, c_height: int = 768 ,c_width: int = 1024, ) -> cv.typing.MatLike:
+    def scale_image(img: cv.typing.MatLike, c_height: int = 768 ,c_width: int = 1024, ) -> cv.typing.MatLike:
         """resize image to 1024 x 768 for better ocr results"""
 
         #(h, w, c)
@@ -25,21 +24,20 @@ class ImagePreProcessor:
 
         return img_scaled
     
-    UNSHARP_MASK = -1/256 * np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, -476, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]])
 
-    def sharppen_img(self, img: cv.typing.MatLike) -> cv.typing.MatLike:
+    def sharppen_img(img: cv.typing.MatLike) -> cv.typing.MatLike:
         """returns image sharppend using unsharp mask matrix"""
 
-        sharp = cv.filter2D(img, -1, self.UNSHARP_MASK)
+        sharp = cv.filter2D(img, -1, -1/256 * np.array([[1, 4, 6, 4, 1], [4, 16, 24, 16, 4], [6, 24, -476, 24, 6], [4, 16, 24, 16, 4], [1, 4, 6, 4, 1]]))
 
         return sharp
     
-    def gausian_threshold(self, img: cv.typing.MatLike) -> cv.typing.MatLike:
+    def gausian_threshold(img: cv.typing.MatLike) -> cv.typing.MatLike:
         """binarization using gausian method"""
         gausian_img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 11, 9)
         return gausian_img
     
-    def sort_points(self, points: cv.typing.MatLike):
+    def sort_points(points: cv.typing.MatLike):
         """sort the points in:  top left, top right, bottom right, bottom left order"""
         points = points.reshape((4,2))
         new_points = np.zeros((4, 1, 2), dtype= np.int32)
@@ -55,7 +53,7 @@ class ImagePreProcessor:
 
         return new_points
 
-    def larger_card(self, new_points: cv.typing.MatLike, original_image: cv.typing.MatLike) -> cv.typing.MatLike:
+    def larger_card(new_points: cv.typing.MatLike, original_image: cv.typing.MatLike) -> cv.typing.MatLike:
         """makes the whole picture the card itself"""
         img_shape = original_image.shape
 
@@ -74,7 +72,7 @@ class ImagePreProcessor:
 
         return (transform)
 
-    def extract_card(self, gray_image: cv.typing.MatLike) -> cv.typing.MatLike | None:
+    def extract_card( gray_image: cv.typing.MatLike) -> cv.typing.MatLike | None:
         """Extract the card it self for better results in the ocr"""
 
         #blur for better edges
@@ -84,7 +82,7 @@ class ImagePreProcessor:
         edged = cv.Canny(blur, 30, 200)
 
         #find contours
-        conts = cv.findContours(self.adaptive_gausian(edged), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        conts = cv.findContours(ImagePreProcessor.adaptive_gausian(edged), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         conts = imutils.grab_contours(conts)
 
         #sort it by size 
@@ -105,7 +103,7 @@ class ImagePreProcessor:
             print('no contr found')
             return None
         
-        sorted_points = self.sort_points(larger)
+        sorted_points = ImagePreProcessor.sort_points(larger)
 
         #top right - top left (take the x axis value)
         largest_contr_width = sorted_points[1] - sorted_points[0]
@@ -123,7 +121,7 @@ class ImagePreProcessor:
             print('contr area is less than 50% of the original image size')
             return None
 
-        larger_extracted_image = self.larger_card(sorted_points, gray_image)
+        larger_extracted_image = ImagePreProcessor.larger_card(sorted_points, gray_image)
 
         return larger_extracted_image
     
@@ -133,7 +131,7 @@ class ImagePreProcessor:
 
 
 
-    def process_image(self, img: cv.typing.MatLike, is_bi: bool = True, is_extracted: bool = True) -> cv.typing.MatLike:
+    def process_image(img: cv.typing.MatLike, is_bi: bool = True, is_extracted: bool = True) -> cv.typing.MatLike:
         """
         pre-process an image before ocr
 
@@ -147,18 +145,18 @@ class ImagePreProcessor:
         """
 
         #scale image to 1024 x 768
-        scaled_img = self.scale_image(img)
+        scaled_img = ImagePreProcessor.scale_image(img)
 
         #convert to gray scale
         gray_image = cv.cvtColor(scaled_img, cv.COLOR_BGR2GRAY)
         
         #sharppen the image after scaling
-        sharppen_image = self.sharppen_img(gray_image)
+        sharppen_image = ImagePreProcessor.sharppen_img(gray_image)
         
         #make the image only the card itself rather than the background 
         extracted_image = None
         if is_extracted:
-            extracted_image = self.extract_card(sharppen_image)
+            extracted_image = ImagePreProcessor.extract_card(sharppen_image)
 
         if extracted_image is None:
             extracted_image = sharppen_image
@@ -168,7 +166,7 @@ class ImagePreProcessor:
         #convert to binarized form 0 and 1 (must be gray) and dilate -> erode
         dilated_image = None
         if is_bi:
-            binarized_image = self.gausian_threshold(extracted_image)
+            binarized_image = ImagePreProcessor.gausian_threshold(extracted_image)
 
             # erode -> dilate = opening which is used to remove noise
             # eroded_image = cv.erode(binarized_image, np.ones((3,3), np.uint8))

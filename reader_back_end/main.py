@@ -9,7 +9,6 @@ from reader_back_end.settings.config import Config
 from reader_back_end.database_connections.redis_db import Redis_db
 
 
-languages_list: list[str]
 
 try:
     
@@ -23,14 +22,16 @@ try:
     fdb = Firebase_db()
     print('=== firebase initialized ===')
 
-    #setup the llm instance
-    print("\n=== initializing ollama model ===")
-    llm = OllamaLLM(model = Config.llm_model)
-    print("=== initializing ollama model ===")
+    # #setup the llm instance
+    # print("\n=== initializing ollama model ===")
+    # llm = OllamaLLM(model = Config.llm_model)
+    # print("=== initializing ollama model ===")
 
+    # now instead of using local llm model we will use gemini api model as it is cheaper and eliminate the need for large server to host the model, also the image processing and enhance the results with less tokens as a prompt
+    # the gemini client will be used in the card reader class
     print('\n=== initializing card reader ===')
     #setup the class that has the process of reading card details
-    card_reader = CardReader(llm)
+    card_reader = CardReader()
     print('=== card reader initialized ===')
     
 
@@ -45,7 +46,6 @@ except Exception as e:
 async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_token),
                             is_binarized: bool = Form(...),
                             is_extracted: bool = Form(...),
-                            language: str = Form('en'),
                             # docs website for the api won't support this for some reason it will act strangely so you should use postman
                             images: List[UploadFile] = File(...)):
     
@@ -54,7 +54,7 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
     is_request_under_limit: bool = rdb.api_limiter(uid= decoded_JWT["uid"])
 
     if not is_request_under_limit:
-        raise HTTPException(status_code= status.HTTP_429_TOO_MANY_REQUESTS, detail= "To many requests")
+        raise HTTPException(status_code= status.HTTP_429_TOO_MANY_REQUESTS, detail= "To many requests please try again later")
 
     if len(images) > 2 or len(images) < 1:
         raise HTTPException(status_code= 400, detail= "No images to be processed or more than 2 images has been submitted")
@@ -63,12 +63,9 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
     #read the image content (in bytes)
     images_content = [await img.read() for img in images]
 
-    #as easy ocr in case of other languages it require them to be in the second place after 'en'
-    languages_list = ['en'] if language.strip().lower() == 'en' else ['en', language.strip().lower()]
-
 
     #return the values in dict form 
-    card_details = card_reader.read_card(images_content, is_binarized, is_extracted, languages_list)
+    card_details = card_reader.read_card(images_content, is_binarized, is_extracted)
 
     return card_details
 
