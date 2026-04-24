@@ -90,10 +90,13 @@ class AIService:
 
 
         try:
-            response_dict = json.loads(response.text)
+            response_dict: dict = json.loads(response.text)
         except Exception as e:
             print(f'error in json {e}')
             raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Something went wrong, try again later")
+        
+        if "error" in response_dict.keys():
+            raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= response_dict["message"])
         
         return response_dict
 
