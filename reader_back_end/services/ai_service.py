@@ -6,6 +6,7 @@ import cv2 as cv
 from fastapi import HTTPException, status
 from google import genai
 from google.genai import types
+from google.genai import errors
 
 from reader_back_end.settings.config import Config
 
@@ -84,9 +85,9 @@ class AIService:
                                                         config=types.GenerateContentConfig(
                                                             response_mime_type="application/json",
                                                     ))
-        except Exception as e:
+        except errors.ServerError as e:
             print(f'error in llm {e}')
-            raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Something went wrong, try again later")
+            raise HTTPException(status_code= e.code, detail= f"Something went wrong, try again later.{e.message}")
 
 
         try:
