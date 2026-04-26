@@ -45,6 +45,10 @@ class ScanRequestNotifier extends Notifier<ScanRequest> {
       );
     }
   }
+
+  void resetRequest() {
+    state = const ScanRequest();
+  }
 }
 
 //to be able to use the notifier we need to create a variable that will be the provider

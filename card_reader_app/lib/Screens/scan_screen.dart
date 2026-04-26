@@ -1,8 +1,15 @@
+import 'package:card_reader_app/Data/Models/scan_request.dart';
 import 'package:card_reader_app/Data/Providers/scan_request_notifier.dart';
+import 'package:card_reader_app/Screens/background_screen.dart';
+import 'package:card_reader_app/Screens/current_screen.dart';
+import 'package:card_reader_app/Screens/loading_screen.dart';
 import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/take_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({
@@ -20,6 +27,65 @@ class ScanScreen extends ConsumerStatefulWidget {
 class _ScanScreenState extends ConsumerState<ScanScreen> {
   bool isThresholdUsed = false;
   bool isSmartCropUsed = false;
+
+  Future<StreamedResponse>? scanCard(
+    BuildContext context,
+    ScanRequest scanRequest,
+  ) async {
+    final currentToken = await FirebaseAuth.instance.currentUser!.getIdToken();
+
+    if (currentToken == null || currentToken.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          showCloseIcon: true,
+          closeIconColor: Theme.of(context).colorScheme.surface,
+          content: Text(
+            "User should sign in again",
+            style: TextStyle(color: Theme.of(context).colorScheme.surface),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+      return Future.value(null);
+    }
+
+    // remove null files and convert the list to a list of bytes instead of Xfiles
+    final imageBytesList = await Future.wait(
+      [
+        scanRequest.firstImageXFile,
+        scanRequest.secondImageXFile,
+      ].nonNulls.map((img) => img.readAsBytes()),
+    );
+
+    // instead of:
+    // var paint = Paint();
+    // paint.color = Colors.black;
+
+    // we will use ..
+    // var paint = Paint()
+    //   ..color = Colors.black
+
+    var uri = Uri.parse('http://10.0.2.2:8000/process_card');
+    var request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = "Bearer $currentToken"
+      ..fields['is_binarized'] = scanRequest.isThresholdUsed.toString()
+      ..fields['is_extracted'] = scanRequest.isSmartCropUsed.toString();
+    int i = 0;
+    for (var byte in imageBytesList) {
+      request.files.add(
+        http.MultipartFile.fromBytes("images", byte, filename: "image_$i.jpg"),
+      );
+      i++;
+    }
+
+    // reset the request for new requests
+    ref.read(scanRequestProvider.notifier).resetRequest();
+
+    final response = await request.send();
+    return response;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,14 +218,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15),
             child: CustomSubmitButton(
-              onTap: () {
-                final firstImageXFile = ref
-                    .read(scanRequestProvider)
-                    .firstImageXFile;
-
-                final secondImageXFile = ref
-                    .read(scanRequestProvider)
-                    .secondImageXFile;
+              onTap: () async {
+                final firstImageXFile = scanRequest.firstImageXFile;
+                final secondImageXFile = scanRequest.secondImageXFile;
 
                 if (firstImageXFile == null && secondImageXFile == null) {
                   ScaffoldMessenger.of(context).clearSnackBars();
@@ -178,18 +239,107 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
                   return;
                 }
-                print(
-                  scanRequest.firstImageXFile == null
-                      ? "null"
-                      : scanRequest.firstImageXFile!.name,
+                Navigator.of(context).pushReplacement(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => FutureBuilder(
+                      future: scanCard(context, scanRequest),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const BackgroundScreen(
+                            scaffoldWidget: LoadingScreen(),
+                          );
+                        }
+
+                        if (snapshot.hasData &&
+                            snapshot.data!.statusCode == 200) {
+                          final outputStream = snapshot.data!.stream;
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) =>
+                                ScaffoldMessenger.of(context).clearSnackBars(),
+                          );
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.green,
+                                showCloseIcon: true,
+                                closeIconColor: Colors.white,
+                                content: FutureBuilder(
+                                  future: outputStream.bytesToString(),
+                                  builder: (context, asyncSnapshot) {
+                                    print(asyncSnapshot.data);
+                                    return Text(
+                                      "This is the data (for debugging): ${asyncSnapshot.data}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+
+                          return const CurrentScreen();
+                        }
+
+                        // WidgetsBinding.instance.addPostFrameCallback((_) => ) is used to show the snackbar even if we were in build
+                        // if there is an error in the server then show the error and go back to the main screen
+                        if (snapshot.hasData &&
+                            snapshot.data!.statusCode != 200) {
+                          final outputStream = snapshot.data!.stream;
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) =>
+                                ScaffoldMessenger.of(context).clearSnackBars(),
+                          );
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: colorScheme.error,
+                                showCloseIcon: true,
+                                closeIconColor: colorScheme.surface,
+                                content: FutureBuilder(
+                                  future: outputStream.bytesToString(),
+                                  builder: (context, asyncSnapshot) {
+                                    return Text(
+                                      "Something went wrong with your request error: ${asyncSnapshot.data}",
+                                      style: TextStyle(
+                                        color: colorScheme.surface,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                          return const CurrentScreen();
+                        }
+
+                        // case of no data
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => ScaffoldMessenger.of(context).clearSnackBars(),
+                        );
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: colorScheme.error,
+                              showCloseIcon: true,
+                              closeIconColor: colorScheme.surface,
+                              content: Text(
+                                "Something went wrong (Server did not respond)",
+                                style: TextStyle(color: colorScheme.surface),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        );
+                        return const CurrentScreen();
+                      },
+                    ),
+                  ),
                 );
-                print(
-                  scanRequest.secondImageXFile == null
-                      ? "null"
-                      : scanRequest.secondImageXFile!.name,
-                );
-                print(scanRequest.isThresholdUsed);
-                print(scanRequest.isSmartCropUsed);
               },
               title: "Scan",
             ),

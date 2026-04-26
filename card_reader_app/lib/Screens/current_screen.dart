@@ -23,7 +23,7 @@ class _CurrentScreenState extends State<CurrentScreen> {
       builder: (context, snapshot) {
         //show a loading screen until the user connect to his account
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const BackgroundScreen(scaffoldWidget: Loadingscreen());
+          return const BackgroundScreen(scaffoldWidget: LoadingScreen());
         }
 
         if (snapshot.hasData) {

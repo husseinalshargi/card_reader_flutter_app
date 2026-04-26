@@ -22,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // the currect selected screen to show the user
+  // the correct selected screen to show the user
   int currentContentIdx = 0;
   String currentTitle = "Card Reader App";
   User? currentUser = FirebaseAuth.instance.currentUser;
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return StreamBuilder(
-      // to detect if something happend to the user account like email
+      // to detect if something happen to the user account like email
       stream: FirebaseAuth.instance.idTokenChanges(),
       builder: (context, snapshot) {
         //this could be used to ensure that the user is logged it or has validated email.. etc (instead of the functions defined before)
@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // if (user == null || user.emailVerified == false)
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const BackgroundScreen(scaffoldWidget: Loadingscreen());
+          return const BackgroundScreen(scaffoldWidget: LoadingScreen());
         }
         if (!snapshot.hasData) {
           return const AuthScreen();
