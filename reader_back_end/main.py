@@ -57,7 +57,12 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
         raise HTTPException(status_code= status.HTTP_429_TOO_MANY_REQUESTS, detail= "To many requests please try again later")
 
     if len(images) > 2 or len(images) < 1:
-        raise HTTPException(status_code= 400, detail= "No images to be processed or more than 2 images has been submitted")
+        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= "No images to be processed or more than 2 images has been submitted")
+    
+    for img in images:
+        if img.size > 1024*1024*5:
+            raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= "Image size should be less than 5 mb")
+ 
 
 
     #read the image content (in bytes)
