@@ -1,3 +1,5 @@
+import logging
+
 import cv2 as cv
 import numpy as np
 import imutils
@@ -5,6 +7,7 @@ import imutils
 
 
 class ImagePreProcessor:
+    user_logger = logging.getLogger("user_logger")
 
     def adaptive_gausian(img: cv.typing.MatLike) -> cv.typing.MatLike:
         """binarization using adaptive gausian method"""
@@ -72,7 +75,7 @@ class ImagePreProcessor:
 
         return (transform)
 
-    def extract_card( gray_image: cv.typing.MatLike) -> cv.typing.MatLike | None:
+    def extract_card( gray_image: cv.typing.MatLike, user_id = "", user_email = "") -> cv.typing.MatLike | None:
         """Extract the card it self for better results in the ocr"""
 
         #blur for better edges
@@ -100,7 +103,7 @@ class ImagePreProcessor:
                 break
         
         if larger is None:
-            print('no contr found')
+            ImagePreProcessor.user_logger.warning(f'{user_id} - {user_email} - no contr found')
             return None
         
         sorted_points = ImagePreProcessor.sort_points(larger)
@@ -118,7 +121,7 @@ class ImagePreProcessor:
         original_image_area = gray_image.shape[0] * gray_image.shape[1]
 
         if contr_area < int(original_image_area/2):
-            print('contr area is less than 50% of the original image size')
+            ImagePreProcessor.user_logger.warning(f'{user_id} - {user_email} - contr area is less than 50% of the original image size')
             return None
 
         larger_extracted_image = ImagePreProcessor.larger_card(sorted_points, gray_image)
@@ -131,7 +134,7 @@ class ImagePreProcessor:
 
 
 
-    def process_image(img: cv.typing.MatLike, is_bi: bool = True, is_extracted: bool = True) -> cv.typing.MatLike:
+    def process_image(img: cv.typing.MatLike, is_bi: bool = True, is_extracted: bool = True, user_id = "", user_email = "") -> cv.typing.MatLike:
         """
         pre-process an image before ocr
 
@@ -156,7 +159,7 @@ class ImagePreProcessor:
         #make the image only the card itself rather than the background 
         extracted_image = None
         if is_extracted:
-            extracted_image = ImagePreProcessor.extract_card(sharppen_image)
+            extracted_image = ImagePreProcessor.extract_card(sharppen_image, user_id = user_id, user_email = user_email)
 
         if extracted_image is None:
             extracted_image = sharppen_image

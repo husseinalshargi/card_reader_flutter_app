@@ -1,0 +1,12 @@
+2026-04-28 17:14:17,852 - <module> - INFO - === initializing redis db ===
+2026-04-28 17:14:18,851 - <module> - INFO - === redis db initialized ===
+2026-04-28 17:14:18,851 - <module> - INFO - === initializing firebase ===
+2026-04-28 17:14:18,878 - <module> - INFO - === firebase initialized ===
+2026-04-28 17:14:18,878 - <module> - INFO - === initializing card reader ===
+2026-04-28 17:14:19,225 - <module> - INFO - === card reader initialized ===
+2026-04-28 17:16:44,888 - <module> - INFO - === initializing redis db ===
+2026-04-28 17:16:46,095 - <module> - INFO - === redis db initialized ===
+2026-04-28 17:16:46,115 - <module> - INFO - === initializing firebase ===
+2026-04-28 17:16:46,142 - <module> - INFO - === firebase initialized ===
+2026-04-28 17:16:46,142 - <module> - INFO - === initializing card reader ===
+2026-04-28 17:16:46,453 - <module> - INFO - === card reader initialized ===

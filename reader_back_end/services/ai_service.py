@@ -1,6 +1,7 @@
 # this is the new version where it will use gemini api instead of a local llm
 
 import json
+import logging
 from typing import List
 import cv2 as cv
 from fastapi import HTTPException, status
@@ -16,10 +17,12 @@ class AIService:
         try:
             self.client = genai.Client(api_key= Config.GEMINI_KEY)
         except Exception as e: 
-            print(f"Error initializing gemini ai error: {e}")
+            raise e
+        
+        self.user_logger = logging.getLogger("user_logger")
         
     
-    def extract_final_text(self, images: List[cv.typing.MatLike]) -> dict[str,any]:
+    def extract_final_text(self, images: List[cv.typing.MatLike], user_id = "", user_email = "") -> dict[str,any]:
         """
         Takes list of preprocessed images of business cards and extract its values returning a dict having name, phone number, etc
         ### classes:
@@ -86,17 +89,18 @@ class AIService:
                                                             response_mime_type="application/json",
                                                     ))
         except errors.ServerError as e:
-            print(f'error in llm {e}')
-            raise HTTPException(status_code= e.code, detail= f"Something went wrong, try again later.{e.message}")
+            self.user_logger.error(f'{user_id} - {user_email} - Error in llm', exc_info= True)
+            raise HTTPException(status_code= e.code, detail= f"Something went wrong, try again later.")
 
 
         try:
             response_dict: dict = json.loads(response.text)
         except Exception as e:
-            print(f'error in json {e}')
+            self.user_logger.error(f'{user_id} - {user_email} - Error in json', exc_info= True)
             raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Something went wrong, try again later")
         
         if "error" in response_dict.keys():
+            self.user_logger.error(f'{user_id} - {user_email} - {response_dict["message"]}')
             raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= response_dict["message"])
         
         return response_dict

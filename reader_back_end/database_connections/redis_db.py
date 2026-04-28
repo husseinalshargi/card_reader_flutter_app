@@ -1,3 +1,5 @@
+import logging
+
 import redis
 from fastapi import HTTPException
 import uuid
@@ -13,9 +15,9 @@ class Redis_db:
         try:
             self.r = redis.Redis(host= Config.REDIS_HOST, port= Config.REDIS_PORT, decode_responses=True, password= Config.REDIS_PASSWORD)
             self.r.ping() # in case no connection it will rise an error
-        except Exception:
-            print('error in redis db initilization')
-            raise HTTPException(400, 'error initilizing redis db')
+        except Exception as e:
+            logging.info('error in redis db initialization')
+            raise e
 
 # this was used in case we deal with api keys ut no, we use JWT token from firebase
     # def __add_api_key(self, user_email: str, api_key: str) -> bool:
