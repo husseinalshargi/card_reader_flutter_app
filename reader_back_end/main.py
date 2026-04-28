@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import time
 from typing import Annotated, List
 
 from langchain_ollama import OllamaLLM
@@ -26,33 +27,39 @@ except Exception as e:
 
 
 try:
+    start_time = time.time()
+
     app = FastAPI()
 
+    start_time_part = time.time()
     logging.info("=== initializing redis db ===")
     rdb = Redis_db()
-    logging.info('=== redis db initialized ===')
+    logging.info(f'=== redis db initialized === - Took {time.time() - start_time_part:.2f}s')
 
+    start_time_part = time.time()
     logging.info("=== initializing firebase ===")
     fdb = Firebase_db()
-    logging.info('=== firebase initialized ===')
+    logging.info(f'=== firebase initialized === - Took {time.time() - start_time_part:.2f}s')
 
     # #setup the llm instance
     # logging.info("=== initializing ollama model ===")
     # llm = OllamaLLM(model = Config.llm_model)
     # logging.info("=== initializing ollama model ===")
 
+    start_time_part = time.time()
     # now instead of using local llm model we will use gemini api model as it is cheaper and eliminate the need for large server to host the model, also the image processing and enhance the results with less tokens as a prompt
     # the gemini client will be used in the card reader class
     logging.info('=== initializing card reader ===')
     #setup the class that has the process of reading card details
     card_reader = CardReader()
-    logging.info('=== card reader initialized ===')
+    logging.info(f'=== card reader initialized === - Took {time.time() - start_time_part:.2f}s')
 
-    logging.info('\n ======== System Initialized ========  \n\n')
+
+    logging.info(f'\n ======== System Initialized - Took {time.time() - start_time:.2f}s ========  \n\n')
     
 
 except Exception as e:
-    logging.critical(f'error in initializing card reader back-end', exc_info= True)    
+    logging.critical(f'error in initializing card reader back-end - Took {time.time() - start_time:.2f}s', exc_info= True)    
 
 # Form(...) indicates for an entry that is a string
 # File(...) indicates for an entry that is an image or more than one (i think)
@@ -65,21 +72,23 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
                             # docs website for the api won't support this for some reason it will act strangely so you should use postman
                             images: List[UploadFile] = File(...)):
     
+    start_time = time.time()
+    
     # now before doing anything the user id will be used to rate limit 
     # the function will return a bool indicating whether the user is under limit or not (currently 3 requests per minute)
     is_request_under_limit: bool = rdb.api_limiter(uid= decoded_JWT["uid"])
 
     if not is_request_under_limit:
-        user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - To many requests error")
+        user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - To many requests error - Took {time.time() - start_time:.2f}s")
         raise HTTPException(status_code= status.HTTP_429_TOO_MANY_REQUESTS, detail= "To many requests please try again later")
 
     if len(images) > 2 or len(images) < 1:
-        user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - To many requests error")
+        user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - To many requests error - Took {time.time() - start_time:.2f}s")
         raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= "No images to be processed or more than 2 images has been submitted")
     
     for img in images:
         if img.size > 1024*1024*5:
-            user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - User uploaded one or more images with more than 5mb size")
+            user_logger.warning(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - User uploaded one or more images with more than 5mb size - Took {time.time() - start_time:.2f}s")
             raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= "Image size should be less than 5 mb")
  
 
@@ -88,14 +97,14 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
     try:
         images_content = [await img.read() for img in images]
     except:
-        logging.critical("Error in reading images", exc_info= True)
+        logging.critical(f"Error in reading images - Took {time.time() - start_time:.2f}s", exc_info= True)
         raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Something went wrong in server")
 
 
     #return the values in dict form 
     card_details = card_reader.read_card(images_content, is_binarized, is_extracted, user_id= decoded_JWT["user_id"], user_email =decoded_JWT["email"],)
 
-    user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Scanned a card successfully")
+    user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Scanned a card successfully - Took {time.time() - start_time:.2f}s")
 
     return card_details
 
