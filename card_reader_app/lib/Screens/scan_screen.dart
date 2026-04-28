@@ -48,7 +48,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           ),
         ),
       );
-      return Future.value(null);
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, firstAnimation, secondaryAnimation) =>
+              const CurrentScreen(),
+        ),
+      );
     }
 
     // remove null files and convert the list to a list of bytes instead of Xfiles
