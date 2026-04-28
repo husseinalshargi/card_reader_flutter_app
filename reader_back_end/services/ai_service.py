@@ -2,6 +2,7 @@
 
 import json
 import logging
+import time
 from typing import List
 import cv2 as cv
 from fastapi import HTTPException, status
@@ -45,6 +46,7 @@ class AIService:
                     types.Part.from_bytes(data=encoded_image.tobytes(), mime_type="image/jpeg")
                 )
         
+        start_time = time.time()
         # call the model to return the classes
         try:
             response = self.client.models.generate_content(model= "gemini-flash-lite-latest",
@@ -88,6 +90,8 @@ class AIService:
                                                         config=types.GenerateContentConfig(
                                                             response_mime_type="application/json",
                                                     ))
+            
+            self.user_logger.info(f"{user_id} - {user_email} - Gemini request took {time.time() - start_time:.2f}")
         except errors.ServerError as e:
             self.user_logger.error(f'{user_id} - {user_email} - Error in llm', exc_info= True)
             raise HTTPException(status_code= e.code, detail= f"Something went wrong, try again later.")
