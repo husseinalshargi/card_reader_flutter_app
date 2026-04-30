@@ -1,8 +1,11 @@
 import 'package:card_reader_app/Data/Enums/global_enums.dart';
+import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/current_screen.dart';
+import 'package:card_reader_app/Widgets/custom_app_bar.dart';
 import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/custom_text_form_field.dart';
 import 'package:card_reader_app/Widgets/part_splitter.dart';
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -279,320 +282,409 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final width = MediaQuery.sizeOf(context).width;
     final bottomMargin = MediaQuery.of(context).padding.bottom;
+    final topMargin = MediaQuery.of(context).padding.top;
     final textStyle = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Profile"),
-        backgroundColor: colorScheme.onSurface,
-        foregroundColor: colorScheme.surface,
-      ),
-      body: Padding(
-        padding: EdgeInsets.only(bottom: bottomMargin),
-        child: SizedBox(
-          width: width,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            children: [
-              // change name
-              Form(
-                key: nameFormKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const PartSplitter(title: "Name"),
-                    CustomTextFormField(
-                      initialValue: currentFirstName,
-                      inputType: InputType.person,
-                      label: "First Name",
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please Enter a Valid First Name";
-                        }
-                        if (value.trim().length <= 2) {
-                          return "First Name Should Have More than 2 Characters";
-                        }
-                        if (value.trim().length > 30) {
-                          return "First Name Should Have Less than 30 Characters";
-                        }
-                        if (!isAlphabetsOnly(value.trim())) {
-                          // if not only alpha
-                          return "Name should have only Alphabets without space or any special characters";
-                        }
-                        return '';
-                      },
-                      onSaved: (value) {
-                        newFirstName = value;
-                      },
-                    ),
-                    const SizedBox(height: 5),
-                    //last name field
-                    CustomTextFormField(
-                      initialValue: currentLastName,
-                      inputType: InputType.person,
-                      label: "Last Name",
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please Enter a Valid Last Name";
-                        }
-                        if (value.trim().length <= 2) {
-                          return "Last Name Should Have More than 2 Characters";
-                        }
-                        if (value.trim().length > 30) {
-                          return "Last Name Should Have Less than 30 Characters";
-                        }
-                        if (!isAlphabetsOnly(value.trim())) {
-                          // if not only alpha
-                          return "Name should have only Alphabets without space or any special characters";
-                        }
+    final appbar = const CustomAppBar(
+      allowBackScreen: true,
+      screenTitle: "Profile",
+    );
 
-                        return '';
-                      },
-                      onSaved: (value) {
-                        newLastName = value;
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    //save the new name
-                    CustomSubmitButton(
-                      onTap: () {
-                        changeName(colorScheme);
-                      },
-                      title: "Change Your Name",
-                    ),
-                  ],
-                ),
+    return BackgroundScreen(
+      scaffoldWidget: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: appbar,
+        backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: true,
+        body: Padding(
+          padding: EdgeInsets.only(top: topMargin),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
               ),
-
-              // change email
-              FutureBuilder(
-                future: isExternalAuth,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const PartSplitter(title: "Email"),
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              colorScheme.primary.withValues(alpha: 0.8),
-                            ),
-                            strokeWidth: 3,
-                          ),
-                        ),
-                        Text(
-                          "If it took so long try to re-authenticate",
-                          style: textStyle.bodySmall!.copyWith(
-                            color: colorScheme.primary.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  return Form(
-                    key: emailFormKey,
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: appbar.preferredSize.height,
+                bottom: bottomMargin,
+              ),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  // change name
+                  Form(
+                    key: nameFormKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const PartSplitter(title: "Email"),
-                        //current email
+                        const PartSplitter(title: "Name"),
                         CustomTextFormField(
-                          inputType: InputType.email,
-                          label: "Current Email",
+                          initialValue: currentFirstName,
+                          inputType: InputType.person,
+                          label: "First Name",
                           validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Please Enter a Valid First Name";
+                            }
+                            if (value.trim().length <= 2) {
+                              return "First Name Should Have More than 2 Characters";
+                            }
+                            if (value.trim().length > 30) {
+                              return "First Name Should Have Less than 30 Characters";
+                            }
+                            if (!isAlphabetsOnly(value.trim())) {
+                              // if not only alpha
+                              return "Name should have only Alphabets without space or any special characters";
+                            }
                             return '';
                           },
                           onSaved: (value) {
-                            return;
+                            newFirstName = value;
                           },
-                          initialValue: currentEmail,
-                          readOnly: true,
                         ),
                         const SizedBox(height: 5),
-                        // snapshot -> isExternal which is true in case of external
-                        if (!snapshot.hasData)
-                          Text(
-                            "Something went wrong try to re-authenticate or change sign in method if it was external",
-                            style: textStyle.bodySmall!.copyWith(
-                              color: colorScheme.primary.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        if (snapshot.data!)
-                          Text(
-                            "Can't change email on your sign in method (external sign in)",
-                            style: textStyle.bodySmall!.copyWith(
-                              color: colorScheme.primary.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        if (!snapshot.data!)
-                          // this means false to external sign in
-                          //New email field
-                          CustomTextFormField(
-                            inputType: InputType.email,
-                            label: "New Email",
-                            validator: (value) {
-                              if (value == null ||
-                                  value.isEmpty ||
-                                  value.trim().length <= 1 ||
-                                  value.trim().length > 70 ||
-                                  !value.trim().contains("@") ||
-                                  !value.trim().contains(".")) {
-                                return "Please Enter a Valid Email Address";
-                              }
-                              return '';
-                            },
-                            onSaved: (value) {
-                              newEmail = value;
-                            },
-                          ),
+                        //last name field
+                        CustomTextFormField(
+                          initialValue: currentLastName,
+                          inputType: InputType.person,
+                          label: "Last Name",
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Please Enter a Valid Last Name";
+                            }
+                            if (value.trim().length <= 2) {
+                              return "Last Name Should Have More than 2 Characters";
+                            }
+                            if (value.trim().length > 30) {
+                              return "Last Name Should Have Less than 30 Characters";
+                            }
+                            if (!isAlphabetsOnly(value.trim())) {
+                              // if not only alpha
+                              return "Name should have only Alphabets without space or any special characters";
+                            }
+
+                            return '';
+                          },
+                          onSaved: (value) {
+                            newLastName = value;
+                          },
+                        ),
                         const SizedBox(height: 10),
-                        //save the new email
-                        if (!snapshot.data!)
-                          CustomSubmitButton(
-                            onTap: () async {
-                              await changeEmail(colorScheme);
-                            },
-                            title: "Change Your Email",
-                          ),
+                        //save the new name
+                        CustomSubmitButton(
+                          onTap: () {
+                            changeName(colorScheme);
+                          },
+                          title: "Change Your Name",
+                        ),
                       ],
                     ),
-                  );
-                },
-              ),
+                  ),
 
-              // change password
-              FutureBuilder(
-                future: isExternalAuth,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const PartSplitter(title: "Password"),
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              colorScheme.primary.withValues(alpha: 0.8),
+                  // change email
+                  FutureBuilder(
+                    future: isExternalAuth,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const PartSplitter(title: "Email"),
+                            SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  colorScheme.primary.withValues(alpha: 0.8),
+                                ),
+                                strokeWidth: 3,
+                              ),
                             ),
-                            strokeWidth: 3,
-                          ),
-                        ),
-                        Text(
-                          "If it took so long try to re-authenticate",
-                          style: textStyle.bodySmall!.copyWith(
-                            color: colorScheme.primary.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return Form(
-                    key: passwordFormKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const PartSplitter(title: "Password"),
-                        // snapshot -> isExternal which is true in case of external
-                        if (!snapshot.hasData)
-                          Text(
-                            "Something went wrong try to re-authenticate or change sign in method if it was external",
-                            style: textStyle.bodySmall!.copyWith(
-                              color: colorScheme.primary.withValues(alpha: 0.8),
+                            Text(
+                              "If it took so long try to re-authenticate",
+                              style: textStyle.bodySmall!.copyWith(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.8,
+                                ),
+                              ),
                             ),
-                          ),
-                        if (snapshot.data!)
-                          Text(
-                            "Can't change password on your sign in method (external sign in)",
-                            style: textStyle.bodySmall!.copyWith(
-                              color: colorScheme.primary.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        if (!snapshot.data!)
-                          CustomTextFormField(
-                            inputType: InputType.password,
-                            label: "Enter Current Password",
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please Enter a Valid Password";
-                              }
+                          ],
+                        );
+                      }
 
-                              return '';
-                            },
-                            onSaved: (value) {
-                              oldPassword = value;
-                            },
-                          ),
-                        if (!snapshot.data!) const SizedBox(height: 5),
-                        if (!snapshot.data!)
-                          CustomTextFormField(
-                            inputType: InputType.password,
-                            label: "New Password",
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please Enter a Valid Password";
-                              }
-                              if (value.length < 6) {
-                                return "Password Must be at Least 6 Characters Long";
-                              }
-                              //save it in validation first as this will update the value before the validation so that we could compare between the values beform confirm password validation
-                              newPassword = value;
-
-                              //no need to check here if it does match as it is important in the confirm only
-                              return '';
-                            },
-                            onSaved: (value) {
-                              newPassword = value;
-                            },
-                          ),
-                        if (!snapshot.data!) const SizedBox(height: 5),
-                        //New email field
-                        if (!snapshot.data!)
-                          CustomTextFormField(
-                            inputType: InputType.password,
-                            label: "Confirm Password",
-                            validator: (value) {
-                              {
-                                if (value == null || value.isEmpty) {
-                                  return "Please Enter a Valid Password";
-                                }
-                                if (value != newPassword) {
-                                  return "Passwords does not Match";
-                                }
-
+                      return Form(
+                        key: emailFormKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const PartSplitter(title: "Email"),
+                            //current email
+                            CustomTextFormField(
+                              inputType: InputType.email,
+                              label: "Current Email",
+                              validator: (value) {
                                 return '';
-                              }
-                            },
-                            onSaved: (value) {
-                              confirmPassword = value;
-                            },
+                              },
+                              onSaved: (value) {
+                                return;
+                              },
+                              initialValue: currentEmail,
+                              readOnly: true,
+                            ),
+                            const SizedBox(height: 5),
+                            // snapshot -> isExternal which is true in case of external
+                            if (!snapshot.hasData)
+                              Text(
+                                "Something went wrong try to re-authenticate or change sign in method if it was external",
+                                style: textStyle.bodySmall!.copyWith(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                              ),
+                            if (snapshot.data!)
+                              Text(
+                                "Can't change email on your sign in method (external sign in)",
+                                style: textStyle.bodySmall!.copyWith(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                              ),
+                            if (!snapshot.data!)
+                              // this means false to external sign in
+                              //New email field
+                              CustomTextFormField(
+                                inputType: InputType.email,
+                                label: "New Email",
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.trim().length <= 1 ||
+                                      value.trim().length > 70 ||
+                                      !value.trim().contains("@") ||
+                                      !value.trim().contains(".")) {
+                                    return "Please Enter a Valid Email Address";
+                                  }
+                                  return '';
+                                },
+                                onSaved: (value) {
+                                  newEmail = value;
+                                },
+                              ),
+                            const SizedBox(height: 10),
+                            //save the new email
+                            if (!snapshot.data!)
+                              CustomSubmitButton(
+                                onTap: () async {
+                                  await changeEmail(colorScheme);
+                                },
+                                title: "Change Your Email",
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  // change password
+                  FutureBuilder(
+                    future: isExternalAuth,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const PartSplitter(title: "Password"),
+                            SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  colorScheme.primary.withValues(alpha: 0.8),
+                                ),
+                                strokeWidth: 3,
+                              ),
+                            ),
+                            Text(
+                              "If it took so long try to re-authenticate",
+                              style: textStyle.bodySmall!.copyWith(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Form(
+                        key: passwordFormKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const PartSplitter(title: "Password"),
+                            // snapshot -> isExternal which is true in case of external
+                            if (!snapshot.hasData)
+                              Text(
+                                "Something went wrong try to re-authenticate or change sign in method if it was external",
+                                style: textStyle.bodySmall!.copyWith(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                              ),
+                            if (snapshot.data!)
+                              Text(
+                                "Can't change password on your sign in method (external sign in)",
+                                style: textStyle.bodySmall!.copyWith(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                              ),
+                            if (!snapshot.data!)
+                              CustomTextFormField(
+                                inputType: InputType.password,
+                                label: "Enter Current Password",
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Please Enter a Valid Password";
+                                  }
+
+                                  return '';
+                                },
+                                onSaved: (value) {
+                                  oldPassword = value;
+                                },
+                              ),
+                            if (!snapshot.data!) const SizedBox(height: 5),
+                            if (!snapshot.data!)
+                              CustomTextFormField(
+                                inputType: InputType.password,
+                                label: "New Password",
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Please Enter a Valid Password";
+                                  }
+                                  if (value.length < 6) {
+                                    return "Password Must be at Least 6 Characters Long";
+                                  }
+                                  //save it in validation first as this will update the value before the validation so that we could compare between the values beform confirm password validation
+                                  newPassword = value;
+
+                                  //no need to check here if it does match as it is important in the confirm only
+                                  return '';
+                                },
+                                onSaved: (value) {
+                                  newPassword = value;
+                                },
+                              ),
+                            if (!snapshot.data!) const SizedBox(height: 5),
+                            //New email field
+                            if (!snapshot.data!)
+                              CustomTextFormField(
+                                inputType: InputType.password,
+                                label: "Confirm Password",
+                                validator: (value) {
+                                  {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please Enter a Valid Password";
+                                    }
+                                    if (value != newPassword) {
+                                      return "Passwords does not Match";
+                                    }
+
+                                    return '';
+                                  }
+                                },
+                                onSaved: (value) {
+                                  confirmPassword = value;
+                                },
+                              ),
+                            if (!snapshot.data!) const SizedBox(height: 10),
+                            //save the new password
+                            if (!snapshot.data!)
+                              CustomSubmitButton(
+                                onTap: () {
+                                  changePassword(colorScheme);
+                                },
+                                title: "Change Your Password",
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const PartSplitter(title: "Delete Account"),
+                  CustomSubmitButton(
+                    onTap: () async {
+                      // present confirm button before signing the user out
+                      if (await confirm(
+                        context,
+                        title: Text(
+                          "Confirm",
+                          style: textStyle.titleLarge!.copyWith(
+                            color: colorScheme.secondary,
                           ),
-                        if (!snapshot.data!) const SizedBox(height: 10),
-                        //save the new password
-                        if (!snapshot.data!)
-                          CustomSubmitButton(
-                            onTap: () {
-                              changePassword(colorScheme);
-                            },
-                            title: "Change Your Password",
+                        ),
+                        content: Text(
+                          "Are you sure you want to sign out?",
+                          style: textStyle.titleSmall!.copyWith(
+                            color: colorScheme.primary,
                           ),
-                      ],
-                    ),
-                  );
-                },
+                        ),
+                        textOK: const Text("Delete Account"),
+                        textCancel: const Text("Cancel"),
+                      )) {
+                        try {
+                          await FirebaseAuth.instance.currentUser!.delete();
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == "requires-recent-login") {
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: colorScheme.error,
+                                showCloseIcon: true,
+                                closeIconColor: colorScheme.surface,
+                                content: Text(
+                                  "You must have signed in recently to delete your account",
+                                  style: TextStyle(color: colorScheme.surface),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: colorScheme.error,
+                                showCloseIcon: true,
+                                closeIconColor: colorScheme.surface,
+                                content: Text(
+                                  "Something went wrong deleting your account",
+                                  style: TextStyle(color: colorScheme.surface),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        // do nothing otherwise
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    title: "Delete Account",
+                  ),
+                ],
               ),
-              const PartSplitter(title: "Delete Account"),
-              CustomSubmitButton(onTap: () {}, title: "Delete Account"),
-            ],
+            ),
           ),
         ),
       ),
