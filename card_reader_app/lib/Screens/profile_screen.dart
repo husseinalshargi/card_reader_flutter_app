@@ -634,7 +634,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         content: Text(
-                          "Are you sure you want to sign out?",
+                          "Are you sure you want to delete your account?",
                           style: textStyle.titleSmall!.copyWith(
                             color: colorScheme.primary,
                           ),
@@ -675,9 +675,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             );
                           }
                         }
-                      } else {
-                        // do nothing otherwise
-                        Navigator.of(context).pop();
                       }
                     },
                     title: "Delete Account",

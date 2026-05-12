@@ -4,6 +4,7 @@ import 'package:card_reader_app/Data/Models/card_details.dart';
 import 'package:card_reader_app/Data/Models/scan_request.dart';
 import 'package:card_reader_app/Data/Providers/scan_request_notifier.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
+import 'package:card_reader_app/Screens/card_details_screen.dart';
 import 'package:card_reader_app/Screens/current_screen.dart';
 import 'package:card_reader_app/Screens/loading_screen.dart';
 import 'package:card_reader_app/Widgets/custom_app_bar.dart';
@@ -324,7 +325,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                                                   data: cardData,
                                                 );
 
-                                            return const CurrentScreen();
+                                            return CardDetailsScreen(
+                                              cardDetails: cardDetails,
+                                              createNewCard: true,
+                                            );
                                           } on Exception {
                                             WidgetsBinding.instance
                                                 .addPostFrameCallback(

@@ -3,7 +3,6 @@ import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/home_screen.dart';
 import 'package:card_reader_app/Screens/loading_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:card_reader_app/Widgets/auth_icons.dart';
 import 'package:flutter/material.dart';
 
 class CurrentScreen extends StatefulWidget {
