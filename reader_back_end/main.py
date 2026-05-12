@@ -3,12 +3,13 @@ from datetime import datetime
 import time
 from typing import Annotated, List
 
+from sqlalchemy.orm import Session
 from langchain_ollama import OllamaLLM
-from fastapi import FastAPI, HTTPException, Query, UploadFile, File, Form, Depends, status
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, status, encoders
 
 from reader_back_end.database_connections.firebase_db import Firebase_db
+from reader_back_end.db.database import SqlDB
 from reader_back_end.services.card_reader import CardReader
-from reader_back_end.settings.config import Config
 from reader_back_end.database_connections.redis_db import Redis_db
 
 try:
@@ -32,14 +33,22 @@ try:
     app = FastAPI()
 
     start_time_part = time.time()
-    logging.info("=== initializing redis db ===")
+    logging.info("=== Connecting to redis db ===")
     rdb = Redis_db()
-    logging.info(f'=== redis db initialized === - Took {time.time() - start_time_part:.2f}s')
+    logging.info(f'=== redis db connected === - Took {time.time() - start_time_part:.2f}s')
 
     start_time_part = time.time()
-    logging.info("=== initializing firebase ===")
+    logging.info("=== Connecting to firebase ===")
     fdb = Firebase_db()
-    logging.info(f'=== firebase initialized === - Took {time.time() - start_time_part:.2f}s')
+    logging.info(f'=== firebase connected === - Took {time.time() - start_time_part:.2f}s')
+
+    start_time_part = time.time()
+    logging.info("=== Connecting to SQL db ===")
+    SQL_db = SqlDB()
+    SQL_db.init_db()
+
+    logging.info(f'=== SQL db connected === - Took {time.time() - start_time_part:.2f}s')
+
 
     # #setup the llm instance
     # logging.info("=== initializing ollama model ===")
@@ -61,16 +70,21 @@ try:
 except Exception as e:
     logging.critical(f'error in initializing card reader back-end - Took {time.time() - start_time:.2f}s', exc_info= True)    
 
+from reader_back_end.db.schemas.card import GetCard, GetScannedResult, SaveCard
+
 # Form(...) indicates for an entry that is a string
 # File(...) indicates for an entry that is an image or more than one (i think)
 # dependencies= [Depends(api_header_auth.admin_access)] this means when this post is called it will require a header that will be processed in the function api_header_auth.admin_access
 # decoded_JWT: dict = Depends(fdb.get_user_id_from_token) this makes it useable in the function
 @app.post('/process_card')
-async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_token),
+async def process_card(decoded_JWT: dict = Depends(fdb.get_user_info_from_token),
                             is_binarized: bool = Form(...),
                             is_extracted: bool = Form(...),
                             # docs website for the api won't support this for some reason it will act strangely so you should use postman
                             images: List[UploadFile] = File(...)):
+    
+    user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Started scanning a card")
+
     
     start_time = time.time()
     
@@ -105,7 +119,60 @@ async def get_card_details(decoded_JWT: dict = Depends(fdb.get_user_info_from_to
     card_details = card_reader.read_card(images_content, is_binarized, is_extracted, user_id= decoded_JWT["user_id"], user_email =decoded_JWT["email"],)
 
     user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Scanned a card successfully - Took {time.time() - start_time:.2f}s")
+    return GetScannedResult(**card_details)
 
-    return card_details
+@app.post("/upsert_card")
+def upsert_card(card_data: SaveCard, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    # using a scheme like SaveCard will require the request to have a dict instead of passing fields
+    # but it will need to be json encoded first
+    from reader_back_end.db.repositories.card_repository import CardRepository
+    try:
+        start_time = time.time()
+        card = CardRepository.upsert_card(db, card_data, decoded_JWT["uid"])
+        user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Saved a card successfully - Took {time.time() - start_time:.2f}s")
+        return card
+
+    except:
+        user_logger.error("couldn't save card", exc_info= True)
+        raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't save card")
+
+@app.post("/get_card")
+def get_card(id: int, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    from reader_back_end.db.repositories.card_repository import CardRepository
+    try:
+        start_time = time.time()
+        card = CardRepository.get_card(db, id, decoded_JWT["uid"])
+        user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Got a card successfully - Took {time.time() - start_time:.2f}s")
+        return card
+
+    except:
+        user_logger.error("couldn't get card details", exc_info= True)
+        raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't get card details")
 
 
+@app.get("/get_all_cards")
+def get_all_cards(db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    from reader_back_end.db.repositories.card_repository import CardRepository
+
+    try:
+        start_time = time.time()
+        cards = CardRepository.get_all_cards(db, decoded_JWT["uid"])
+        user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - Got all cards successfully - Took {time.time() - start_time:.2f}s")
+        return cards
+    except:
+        user_logger.error("couldn't get all cards", exc_info= True)
+        raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't get all cards")
+
+@app.post("/delete_card")
+def delete_card(card_id: int, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    # post do nit have body so the id has to be part of the uri 
+    from reader_back_end.db.repositories.card_repository import CardRepository
+    try:
+        user_id = decoded_JWT["uid"] #instead of saving it in the client side we will add it here
+        start_time = time.time()
+        CardRepository.delete_card(db, card_id, user_id)
+        user_logger.info(f"{decoded_JWT["user_id"]} - {decoded_JWT["email"]} - delete a card successfully - Took {time.time() - start_time:.2f}s")
+
+    except:
+        user_logger.error("couldn't delete card", exc_info= True)
+        raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't delete card")

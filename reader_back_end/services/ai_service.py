@@ -55,9 +55,7 @@ class AIService:
                                                                 business cards and extract contact details into JSON.
                                                                 CRITICAL RULES:
 
-                                                                1. If the image is a book, document, or anything other than a business card,
-                                                                return: 
-                                                                {"error": "INVALID_OBJECT", "message": "Please scan a business card. "}
+                                                                1. If all images are of a book, document, or anything other than a business card try to scan what you can.
 
                                                                 2. if you are unsure if the object is a business card, default to the error response.
 
@@ -93,7 +91,11 @@ class AIService:
             
             self.user_logger.info(f"{user_id} - {user_email} - Gemini request took {time.time() - start_time:.2f}")
         except errors.ServerError as e:
-            self.user_logger.error(f'{user_id} - {user_email} - Error in llm', exc_info= True)
+            if e.status == "UNAVAILABLE":
+                self.user_logger.error(f'{user_id} - {user_email} - Error in llm')
+            else:
+                self.user_logger.error(f'{user_id} - {user_email} - Error in llm', exc_info= True)
+
             raise HTTPException(status_code= e.code, detail= f"Something went wrong, try again later.")
 
 

@@ -20,3 +20,5 @@ class Config:
 
     # gemini api key for connection
     GEMINI_KEY = os.environ.get('GEMINI_API_KEY')
+
+    mysql_url = os.environ.get('mysql_url')

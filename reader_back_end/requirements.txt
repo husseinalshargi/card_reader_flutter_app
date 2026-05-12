@@ -32,3 +32,9 @@ redis[hiredis]
 
 #use firebase
 firebase_admin
+
+#db connection
+sqlalchemy
+
+# use mysql db
+mysqlclient
