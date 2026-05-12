@@ -12,7 +12,7 @@ from reader_back_end.db.database import SqlDB
 from reader_back_end.services.card_reader import CardReader
 from reader_back_end.database_connections.redis_db import Redis_db
 
-try:
+try: 
     logging.basicConfig(level= logging.INFO, filename= f"reader_back_end\\Logs\\System Logs - {datetime.now().date()}.log", filemode= "a", 
                     format="%(asctime)s - %(funcName)s - %(levelname)s - %(message)s") 
 
