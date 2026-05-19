@@ -14,13 +14,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class CardDetailsScreen extends ConsumerStatefulWidget {
-  const CardDetailsScreen({
-    super.key,
-    required this.cardDetails,
-    required this.createNewCard,
-  });
+  const CardDetailsScreen({super.key, required this.cardDetails});
   final CardDetails cardDetails;
-  final bool createNewCard;
 
   @override
   ConsumerState<CardDetailsScreen> createState() {
@@ -98,32 +93,40 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
       );
 
       if (response.statusCode != 200) {
-        ScaffoldMessenger.of(context).clearSnackBars();
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ScaffoldMessenger.of(context).clearSnackBars(),
+        );
 
-        (_) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            showCloseIcon: true,
-            closeIconColor: Theme.of(context).colorScheme.surface,
-            content: Text(
-              "Couldn't save card",
-              style: TextStyle(color: Theme.of(context).colorScheme.surface),
-              textAlign: TextAlign.center,
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              showCloseIcon: true,
+              closeIconColor: Theme.of(context).colorScheme.surface,
+              content: Text(
+                "Couldn't save card",
+                style: TextStyle(color: Theme.of(context).colorScheme.surface),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).clearSnackBars();
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ScaffoldMessenger.of(context).clearSnackBars(),
+        );
 
-        (_) => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            showCloseIcon: true,
-            closeIconColor: Colors.white,
-            content: Text(
-              "Card saved successfully",
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.green,
+              showCloseIcon: true,
+              closeIconColor: Colors.white,
+              content: Text(
+                "Card saved successfully",
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         );

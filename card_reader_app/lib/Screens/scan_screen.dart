@@ -327,7 +327,6 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
                                             return CardDetailsScreen(
                                               cardDetails: cardDetails,
-                                              createNewCard: true,
                                             );
                                           } on Exception {
                                             WidgetsBinding.instance

@@ -1,6 +1,8 @@
+import 'package:card_reader_app/Data/Models/card_details.dart';
 import 'package:card_reader_app/Data/Providers/scanned_cards_notifier.dart';
 import 'package:card_reader_app/Screens/auth_screen.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
+import 'package:card_reader_app/Screens/card_details_screen.dart';
 import 'package:card_reader_app/Screens/loading_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
 import 'package:card_reader_app/Widgets/custom_app_bar.dart';
@@ -200,67 +202,94 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         ),
                                       ),
 
-                                      child: ListTile(
-                                        key: Key(data[idx]['id'].toString()),
-                                        minTileHeight: 75,
-                                        title: StrokeText(
-                                          text: data[idx]['full_name'] ?? "",
-                                          textStyle: textStyle.titleMedium!
-                                              .copyWith(
-                                                color: colorScheme.surface,
-                                              ),
-                                          strokeColor: colorScheme.primary,
-                                          strokeWidth: 3,
-                                        ),
-                                        subtitle: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 8.0,
+                                      child: InkWell(
+                                        splashColor: Colors.black45,
+                                        borderRadius: BorderRadius.circular(15),
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            PageRouteBuilder(
+                                              pageBuilder:
+                                                  (
+                                                    context,
+                                                    animation,
+                                                    secondaryAnimation,
+                                                  ) {
+                                                    return CardDetailsScreen(
+                                                      cardDetails:
+                                                          CardDetails.fromJson(
+                                                            data: data[idx],
+                                                          ),
+                                                    );
+                                                  },
+                                            ),
+                                          );
+                                        },
+                                        child: ListTile(
+                                          key: Key(data[idx]['id'].toString()),
+                                          minTileHeight: 75,
+                                          title: StrokeText(
+                                            text: data[idx]['full_name'] ?? "",
+                                            textStyle: textStyle.titleMedium!
+                                                .copyWith(
+                                                  color: colorScheme.surface,
+                                                ),
+                                            strokeColor: colorScheme.primary,
+                                            strokeWidth: 3,
                                           ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          subtitle: Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 8.0,
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
 
-                                            children: [
-                                              StrokeText(
-                                                text:
-                                                    data[idx]['company_name'] ??
-                                                    "",
-                                                textStyle: textStyle.titleSmall!
-                                                    .copyWith(
-                                                      color:
-                                                          colorScheme.surface,
-                                                    ),
-                                                strokeColor:
-                                                    colorScheme.primary,
-                                                strokeWidth: 3,
-                                              ),
-                                              StrokeText(
-                                                text: data[idx]['email'] ?? "",
-                                                textStyle: textStyle.titleSmall!
-                                                    .copyWith(
-                                                      color:
-                                                          colorScheme.surface,
-                                                    ),
-                                                strokeColor:
-                                                    colorScheme.primary,
-                                                strokeWidth: 3,
-                                              ),
-                                              StrokeText(
-                                                text:
-                                                    data[idx]["phone_number"] ??
-                                                    "",
-                                                textStyle: textStyle.titleSmall!
-                                                    .copyWith(
-                                                      color:
-                                                          colorScheme.surface,
-                                                    ),
-                                                strokeColor:
-                                                    colorScheme.primary,
-                                                strokeWidth: 3,
-                                              ),
-                                            ],
+                                              children: [
+                                                StrokeText(
+                                                  text:
+                                                      data[idx]['company_name'] ??
+                                                      "",
+                                                  textStyle: textStyle
+                                                      .titleSmall!
+                                                      .copyWith(
+                                                        color:
+                                                            colorScheme.surface,
+                                                      ),
+                                                  strokeColor:
+                                                      colorScheme.primary,
+                                                  strokeWidth: 3,
+                                                ),
+                                                StrokeText(
+                                                  text:
+                                                      data[idx]['email'] ?? "",
+                                                  textStyle: textStyle
+                                                      .titleSmall!
+                                                      .copyWith(
+                                                        color:
+                                                            colorScheme.surface,
+                                                      ),
+                                                  strokeColor:
+                                                      colorScheme.primary,
+                                                  strokeWidth: 3,
+                                                ),
+                                                StrokeText(
+                                                  text:
+                                                      data[idx]["phone_number"] ??
+                                                      "",
+                                                  textStyle: textStyle
+                                                      .titleSmall!
+                                                      .copyWith(
+                                                        color:
+                                                            colorScheme.surface,
+                                                      ),
+                                                  strokeColor:
+                                                      colorScheme.primary,
+                                                  strokeWidth: 3,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
