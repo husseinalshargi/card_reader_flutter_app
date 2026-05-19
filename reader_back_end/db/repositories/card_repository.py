@@ -50,7 +50,7 @@ class CardRepository:
                 {Card.full_name : card_data.full_name,
                 Card.phone_number : card_data.full_name,
                 Card.office_number : card_data.office_number,
-                Card.web_site : card_data,
+                Card.web_site : card_data.web_site,
                 Card.company_name : card_data.web_site,
                 Card.email : card_data.email,
                 Card.address : card_data.address,
