@@ -82,8 +82,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     final drawer = const CustomDrawer();
-
-    final bottomNavigationBar = const CustomBottomNavigationBar();
+    final bottomNavigationBar = CustomBottomNavigationBar(
+      screenContext: screenContext,
+    );
 
     return StreamBuilder(
       // to detect if something happen to the user account like email
@@ -299,8 +300,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               );
                       },
                       error: (data, stackTrace) {
-                        return const Center(
-                          child: Text("Couldn't fetch all cards"),
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Couldn't fetch all cards",
+                                style: textStyle.bodyLarge,
+                              ),
+                              IconButton.filled(
+                                onPressed: () {
+                                  ref
+                                      .read(scannedCardsProvider.notifier)
+                                      .refreshCardsList();
+                                },
+                                icon: Icon(
+                                  Icons.refresh_rounded,
+                                  color: colorScheme.surface,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                       loading: () {

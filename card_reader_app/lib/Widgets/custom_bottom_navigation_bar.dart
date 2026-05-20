@@ -1,14 +1,17 @@
+import 'package:card_reader_app/Data/Providers/scanned_cards_notifier.dart';
 import 'package:card_reader_app/Screens/current_screen.dart';
 import 'package:card_reader_app/Screens/scan_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class CustomBottomNavigationBar extends StatelessWidget {
-  const CustomBottomNavigationBar({super.key});
+class CustomBottomNavigationBar extends ConsumerWidget {
+  const CustomBottomNavigationBar({super.key, required this.screenContext});
+  final BuildContext screenContext;
   final double bottomNavSize = 55;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bottomMargin = MediaQuery.of(context).padding.bottom;
     final width = MediaQuery.sizeOf(context).width;
     final colorScheme = Theme.of(context).colorScheme;
@@ -48,8 +51,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(50),
                     splashColor: colorScheme.onPrimary.withValues(alpha: 0.4),
-                    onTap: () {
-                      print("Filter");
+                    onTap: () async {
+                      ref
+                          .read(scannedCardsProvider.notifier)
+                          .changeFilter(context: screenContext);
                     },
                     child: Center(
                       child: Column(
