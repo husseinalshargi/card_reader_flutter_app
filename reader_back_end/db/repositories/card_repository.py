@@ -17,7 +17,8 @@ class CardRepository:
     
     def upsert_card(db: Session, card_data: SaveCard, user_id : str):
         try:
-            card = Card(user_id = user_id, 
+            card = Card(id =card_data.id,
+                        user_id = user_id, 
                         full_name = card_data.full_name, 
                         phone_number = card_data.phone_number,
                         office_number = card_data.office_number,
@@ -46,9 +47,9 @@ class CardRepository:
                 return card
             
 
-            num_of_cards_affected = db.query(Card).filter(Card.id == card_data.id, Card.user_id == user_id).update(
+            num_of_cards_affected = db.query(Card).filter(Card.id == card.id, Card.user_id == card.user_id).update(
                 {Card.full_name : card_data.full_name,
-                Card.phone_number : card_data.full_name,
+                Card.phone_number : card_data.phone_number,
                 Card.office_number : card_data.office_number,
                 Card.web_site : card_data.web_site,
                 Card.company_name : card_data.web_site,
@@ -63,7 +64,6 @@ class CardRepository:
                 raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= "Couldn't update the card, as something went wrong")
             
             db.commit()
-            db.refresh()            
         except:
             raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Couldn't upsert the card")
         
