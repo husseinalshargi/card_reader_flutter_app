@@ -100,7 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (!snapshot.hasData) {
           return const AuthScreen();
         }
-        // it will be there always as hasdata is handeled before
+        // it will be there always as hasdata is handled before
         User? user = snapshot.data;
         // to ensure the user's info is updated (this will ensure the streambuilder notices if the data is changed)
         user!.reload();
@@ -148,8 +148,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                                   return Card(
                                     key: Key(data[idx]['id'].toString()),
-                                    color: colorScheme.secondary.withValues(
-                                      alpha: 0.25,
+                                    color: colorScheme.onTertiary.withValues(
+                                      alpha: 0.6,
                                     ),
                                     child: Dismissible(
                                       key: Key(data[idx]['id'].toString()),
@@ -228,18 +228,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         child: ListTile(
                                           key: Key(data[idx]['id'].toString()),
                                           minTileHeight: 75,
-                                          title: StrokeText(
-                                            text: data[idx]['full_name'] ?? "",
-                                            textStyle: textStyle.titleMedium!
-                                                .copyWith(
-                                                  color: colorScheme.surface,
-                                                ),
-                                            strokeColor: colorScheme.primary,
-                                            strokeWidth: 3,
+                                          title: Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              color: colorScheme.onPrimary
+                                                  .withValues(alpha: 0.7),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: StrokeText(
+                                              text:
+                                                  ((data[idx]['full_name']
+                                                              as String?) ??
+                                                          "")
+                                                      .isEmpty
+                                                  ? "UNKNOWN"
+                                                  : ((data[idx]['full_name']
+                                                            as String?) ??
+                                                        ""),
+                                              textStyle: textStyle.titleMedium!
+                                                  .copyWith(
+                                                    color:
+                                                        colorScheme.onTertiary,
+                                                  ),
+                                              strokeColor:
+                                                  colorScheme.onPrimary,
+                                              strokeWidth: 3,
+                                            ),
                                           ),
                                           subtitle: Padding(
                                             padding: const EdgeInsets.only(
-                                              left: 8.0,
+                                              left: 20.0,
                                             ),
                                             child: Column(
                                               mainAxisAlignment:
