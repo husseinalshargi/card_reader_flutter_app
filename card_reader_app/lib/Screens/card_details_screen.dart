@@ -52,6 +52,35 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
     super.initState();
   }
 
+  /// **Compare old card details with the fields if nothing changed return false (to reduce api calls)**
+  bool isCardDetailsChanged(
+    newFullName,
+    newPhoneNumber,
+    newOfficeNumber,
+    newWebSite,
+    newCompanyName,
+    newEmail,
+    newAddress,
+    newJobTitle,
+    newCity,
+    newCountry,
+    CardDetailsScreen widget,
+  ) {
+    if (newFullName != widget.cardDetails.fullName ||
+        newPhoneNumber != widget.cardDetails.phoneNumber ||
+        newOfficeNumber != widget.cardDetails.officeNumber ||
+        newWebSite != widget.cardDetails.webSite ||
+        newCompanyName != widget.cardDetails.companyName ||
+        newEmail != widget.cardDetails.email ||
+        newAddress != widget.cardDetails.address ||
+        newJobTitle != widget.cardDetails.jobTitle ||
+        newCity != widget.cardDetails.city ||
+        newCountry != widget.cardDetails.country) {
+      return true;
+    }
+    return false;
+  }
+
   Future<void> saveCard(
     BuildContext context,
     CardDetailsScreen widget,
@@ -62,6 +91,50 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
     if (!isValid) return;
 
     cardDetailsFormKey.currentState!.save();
+
+    final bool isCardChanged = isCardDetailsChanged(
+      newFullName,
+      newPhoneNumber,
+      newOfficeNumber,
+      newWebSite,
+      newCompanyName,
+      newEmail,
+      newAddress,
+      newJobTitle,
+      newCity,
+      newCountry,
+      widget,
+    );
+
+    //this will reduce api calls
+    if (!isCardChanged) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ScaffoldMessenger.of(context).clearSnackBars(),
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            showCloseIcon: true,
+            closeIconColor: Colors.white,
+            content: Text(
+              "Card saved successfully",
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const CurrentScreen();
+          },
+        ),
+      );
+      return;
+    }
 
     try {
       final currentToken = await FirebaseAuth.instance.currentUser!
