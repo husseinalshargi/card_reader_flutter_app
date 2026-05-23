@@ -73,7 +73,9 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
           //this will make it accept only certain characters (digits and "+" for now)
           inputFormatters: [
+            if (widget.inputType == InputType.phoneNumber)
             FilteringTextInputFormatter.digitsOnly,
+            if (widget.inputType == InputType.phoneNumber)
             FilteringTextInputFormatter.singleLineFormatter,
           ],
 
