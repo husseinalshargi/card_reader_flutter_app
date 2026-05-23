@@ -102,6 +102,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     final textStyle = Theme.of(context).textTheme;
     final width = MediaQuery.sizeOf(context).width;
     final topMargin = MediaQuery.of(context).padding.top;
+    final bottomMargin = MediaQuery.of(context).padding.bottom;
 
     final appbar = const CustomAppBar(
       allowBackScreen: true,
@@ -255,10 +256,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
                 // scan the card, it takes the images taken 1 maybe 2 then sends it to the backend to be scanned which then it will return the info back to be saved in a new card object
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15.0,
-                    vertical: 15,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
                   child: CustomSubmitButton(
                     onTap: () async {
                       final firstImageXFile = scanRequest.firstImageXFile;
@@ -453,6 +451,36 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       );
                     },
                     title: "Scan",
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(15, 0, 15, bottomMargin),
+                  child: CustomSubmitButton(
+                    onTap: () {
+                      //this button should go to an empty card details screen for the user to fill it
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) {
+                                return CardDetailsScreen(
+                                  cardDetails: CardDetails(
+                                    fullName: "",
+                                    phoneNumber: "",
+                                    officeNumber: "",
+                                    webSite: "",
+                                    companyName: "",
+                                    email: "",
+                                    address: "",
+                                    jobTitle: "",
+                                    city: "",
+                                    country: "",
+                                  ),
+                                );
+                              },
+                        ),
+                      );
+                    },
+                    title: "Create a Contact Instead",
                   ),
                 ),
               ],
