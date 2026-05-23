@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import time
 from typing import List
 import cv2 as cv
@@ -21,6 +22,10 @@ class AIService:
             raise e
         
         self.user_logger = logging.getLogger("user_logger")
+
+    def clean_phone_number(self, phone_number):
+        # \D matches anything that isn't a digit which will be replaced by an empty string
+        return re.sub(r'\D', '', phone_number)
         
     
     def extract_final_text(self, images: List[cv.typing.MatLike], user_id = "", user_email = "") -> dict[str,any]:
@@ -70,6 +75,8 @@ class AIService:
                                                                 7. If the card is multilingual, prioritize English but include Arabic text if English is unavailable for a specific field.
  
                                                                 8. Return ONLY the raw JSON. Do not include markdown formatting or backticks.
+                                                                
+                                                                9. phone number and office number should only have numbers do not include "(", ")", "+" or anything that isn't a digit
                                                
                                                                 output structure:
                                                             {
@@ -108,6 +115,10 @@ class AIService:
         if "error" in response_dict.keys():
             self.user_logger.error(f'{user_id} - {user_email} - {response_dict["message"]}')
             raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= response_dict["message"])
+        
+        # ensure phone number and office number has only digits
+        response_dict["phone_number"] = self.clean_phone_number(response_dict["phone_number"])
+        response_dict["office_number"] = self.clean_phone_number(response_dict["office_number"])
         
         return response_dict
 
