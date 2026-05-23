@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 enum InputType { email, password, person, other, phoneNumber }
@@ -7,12 +8,12 @@ class CustomTextFormField extends StatefulWidget {
   const CustomTextFormField({
     super.key,
     required this.inputType,
+    required this.validator,
+    required this.onSaved,
     this.label = '',
     this.fontAwesomeIcon = FontAwesomeIcons.question,
     this.initialValue = '',
     this.readOnly = false,
-    required this.validator,
-    required this.onSaved,
   });
   final bool readOnly;
   final String label;
@@ -66,9 +67,15 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
             return null;
           },
           onSaved: (newValue) {
-            //pass the value to the enterd function (it won't be null as we should set it in validator function)
+            //pass the value to the enter function (it won't be null as we should set it in validator function)
             widget.onSaved(newValue!);
           },
+
+          //this will make it accept only certain characters (digits and "+" for now)
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            FilteringTextInputFormatter.singleLineFormatter,
+          ],
 
           obscureText:
               !isPasswordVisible && widget.inputType == InputType.password,

@@ -306,7 +306,7 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
                           SizedBox(
                             width: width / 2.3,
                             child: CustomTextFormField(
-                              inputType: InputType.other,
+                              inputType: InputType.phoneNumber,
                               fontAwesomeIcon: FontAwesomeIcons.squarePhone,
                               label: "Office Number",
                               validator: (value) {
