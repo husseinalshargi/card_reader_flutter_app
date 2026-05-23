@@ -75,7 +75,8 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
         newAddress != widget.cardDetails.address ||
         newJobTitle != widget.cardDetails.jobTitle ||
         newCity != widget.cardDetails.city ||
-        newCountry != widget.cardDetails.country) {
+        newCountry != widget.cardDetails.country ||
+        widget.cardDetails.id == null) {
       return true;
     }
     return false;
