@@ -64,5 +64,7 @@
 		<string>Photos library access is required to scan cards</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Camera access is required to scan cards</string>
+		<key>NSContactsUsageDescription</key>
+		<string>Access is needed to save contacts</string>
 	</dict>
 </plist>

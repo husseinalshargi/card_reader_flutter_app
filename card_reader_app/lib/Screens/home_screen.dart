@@ -231,14 +231,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           title: Container(
                                             padding: const EdgeInsets.all(5),
                                             decoration: BoxDecoration(
+                                              border: BoxBorder.all(
+                                                color: colorScheme.secondary,
+                                                width: 2,
+                                              ),
                                               color: colorScheme.onPrimary
                                                   .withValues(alpha: 0.7),
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                             ),
-                                            child: StrokeText(
-                                              text:
-                                                  ((data[idx]['full_name']
+                                            child: Text(
+                                              ((data[idx]['full_name']
                                                               as String?) ??
                                                           "")
                                                       .isEmpty
@@ -246,14 +249,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                   : ((data[idx]['full_name']
                                                             as String?) ??
                                                         ""),
-                                              textStyle: textStyle.titleMedium!
+                                              style: textStyle.titleMedium!
                                                   .copyWith(
                                                     color:
-                                                        colorScheme.onTertiary,
+                                                        colorScheme.secondary,
                                                   ),
-                                              strokeColor:
-                                                  colorScheme.onPrimary,
-                                              strokeWidth: 3,
                                             ),
                                           ),
                                           subtitle: Padding(

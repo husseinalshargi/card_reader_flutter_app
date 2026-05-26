@@ -9,6 +9,7 @@ import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/custom_text_form_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -85,8 +86,9 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
   Future<void> saveCard(
     BuildContext context,
     CardDetailsScreen widget,
-    WidgetRef ref,
-  ) async {
+    WidgetRef ref, {
+    bool isSavedForAddToContact = false,
+  }) async {
     final isValid = cardDetailsFormKey.currentState!.validate();
 
     if (!isValid) return;
@@ -127,13 +129,15 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
           ),
         ),
       );
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return const CurrentScreen();
-          },
-        ),
-      );
+      if (!isSavedForAddToContact) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return const CurrentScreen();
+            },
+          ),
+        );
+      }
       return;
     }
 
@@ -213,14 +217,15 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
       );
 
       ref.read(scannedCardsProvider.notifier).addCard(newCardDetails);
-
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return const CurrentScreen();
-          },
-        ),
-      );
+      if (!isSavedForAddToContact) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return const CurrentScreen();
+            },
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,6 +237,55 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
             "Couldn't Save Card, please try again later, $e",
             style: TextStyle(color: Theme.of(context).colorScheme.surface),
             textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+  }
+
+  void saveToContacts() async {
+    // Request permissions
+    final status = await FlutterContacts.permissions.request(
+      PermissionType.readWrite,
+    );
+    if (status == PermissionStatus.granted) {
+      // create a contact to be saved
+      final Contact contact = Contact(
+        name: Name(first: newFullName),
+        phones: [
+          Phone(number: newPhoneNumber, isPrimary: true),
+          Phone(number: newOfficeNumber, isPrimary: false),
+        ],
+        emails: [Email(address: newEmail, isPrimary: true)],
+        addresses: [
+          Address(formatted: newAddress, city: newCity, country: newCountry),
+        ],
+        organizations: [
+          Organization(name: newCompanyName, jobTitle: newJobTitle),
+        ],
+        websites: [Website(url: newWebSite)],
+      );
+
+      //redirect the user to the phone app with the contact to be created, if user created and null if user canceled
+      await FlutterContacts.native.showCreator(contact: contact);
+
+      //the id later will be saved on a list of shared preference to be updated later from this app
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ScaffoldMessenger.of(context).clearSnackBars(),
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.red,
+            showCloseIcon: true,
+            closeIconColor: Colors.white,
+            content: Text(
+              "Permission is required",
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       );
@@ -493,7 +547,14 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
                               foregroundColor: colorScheme.surface,
                             ),
                             onPressed: () {
-                              print("Save Contact");
+                              // firstly it will save the card details before converting into contact
+                              saveCard(
+                                context,
+                                widget,
+                                ref,
+                                isSavedForAddToContact: true,
+                              );
+                              saveToContacts();
                             },
                             icon: const FaIcon(FontAwesomeIcons.addressBook),
                             label: const Text("Save in Contacts"),
