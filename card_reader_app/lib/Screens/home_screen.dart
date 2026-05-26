@@ -5,6 +5,7 @@ import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/card_details_screen.dart';
 import 'package:card_reader_app/Screens/loading_screen.dart';
 import 'package:card_reader_app/Screens/validate_email_screen.dart';
+import 'package:card_reader_app/Services/share_service.dart';
 import 'package:card_reader_app/Widgets/custom_app_bar.dart';
 import 'package:card_reader_app/Widgets/custom_bottom_navigation_bar.dart';
 import 'package:card_reader_app/Widgets/custom_drawer.dart';
@@ -166,9 +167,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 context: screenContext,
                                               );
                                           return true;
+                                        } else {
+                                          ShareService.shareContact(
+                                            CardDetails.fromJson(
+                                              data: data[idx],
+                                            ),
+                                          );
+
+                                          // if we return false dismissible wont delete the contact as it does by default when true
+                                          return false;
                                         }
-                                        // then do not (this is the op)
-                                        return false;
                                       }, //left side to delete
                                       background: Container(
                                         decoration: BoxDecoration(

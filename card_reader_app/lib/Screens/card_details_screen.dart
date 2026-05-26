@@ -4,6 +4,7 @@ import 'package:card_reader_app/Data/Models/card_details.dart';
 import 'package:card_reader_app/Data/Providers/scanned_cards_notifier.dart';
 import 'package:card_reader_app/Screens/background_screen.dart';
 import 'package:card_reader_app/Screens/current_screen.dart';
+import 'package:card_reader_app/Services/share_service.dart';
 import 'package:card_reader_app/Widgets/custom_app_bar.dart';
 import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/custom_text_form_field.dart';
@@ -87,7 +88,7 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
     BuildContext context,
     CardDetailsScreen widget,
     WidgetRef ref, {
-    bool isSavedForAddToContact = false,
+    bool doNotExitScreen = false,
   }) async {
     final isValid = cardDetailsFormKey.currentState!.validate();
 
@@ -129,7 +130,7 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
           ),
         ),
       );
-      if (!isSavedForAddToContact) {
+      if (!doNotExitScreen) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) {
@@ -217,7 +218,7 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
       );
 
       ref.read(scannedCardsProvider.notifier).addCard(newCardDetails);
-      if (!isSavedForAddToContact) {
+      if (!doNotExitScreen) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) {
@@ -552,7 +553,7 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
                                 context,
                                 widget,
                                 ref,
-                                isSavedForAddToContact: true,
+                                doNotExitScreen: true,
                               );
                               saveToContacts();
                             },
@@ -568,7 +569,26 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
                               foregroundColor: colorScheme.surface,
                             ),
                             onPressed: () {
-                              print("Share Contact");
+                              saveCard(
+                                context,
+                                widget,
+                                ref,
+                                doNotExitScreen: true,
+                              );
+                              ShareService.shareContact(
+                                CardDetails(
+                                  fullName: newFullName,
+                                  phoneNumber: newPhoneNumber,
+                                  officeNumber: newOfficeNumber,
+                                  webSite: newWebSite,
+                                  companyName: newCompanyName,
+                                  email: newEmail,
+                                  address: newAddress,
+                                  jobTitle: newJobTitle,
+                                  city: newCity,
+                                  country: newCountry,
+                                ),
+                              );
                             },
                             icon: const FaIcon(FontAwesomeIcons.share),
                             label: const Text("Share Contact"),
