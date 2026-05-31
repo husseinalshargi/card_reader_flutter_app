@@ -13,6 +13,7 @@ import 'package:card_reader_app/Widgets/no_cards_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stroke_text/stroke_text.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -275,46 +276,87 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                   CrossAxisAlignment.start,
 
                                               children: [
-                                                StrokeText(
-                                                  text:
-                                                      data[idx]['company_name'] ??
-                                                      "",
-                                                  textStyle: textStyle
-                                                      .titleSmall!
-                                                      .copyWith(
-                                                        color:
-                                                            colorScheme.surface,
+                                                Row(
+                                                  children: [
+                                                    FaIcon(
+                                                      FontAwesomeIcons.building,
+                                                      color:
+                                                          colorScheme.surface,
+                                                      size: 18,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: StrokeText(
+                                                        text:
+                                                            data[idx]['company_name'] ??
+                                                            "",
+                                                        textStyle: textStyle
+                                                            .titleSmall!
+                                                            .copyWith(
+                                                              color: colorScheme
+                                                                  .surface,
+                                                            ),
+                                                        strokeColor:
+                                                            colorScheme.primary,
+                                                        strokeWidth: 3,
                                                       ),
-                                                  strokeColor:
-                                                      colorScheme.primary,
-                                                  strokeWidth: 3,
+                                                    ),
+                                                  ],
                                                 ),
-                                                StrokeText(
-                                                  text:
-                                                      data[idx]['email'] ?? "",
-                                                  textStyle: textStyle
-                                                      .titleSmall!
-                                                      .copyWith(
-                                                        color:
-                                                            colorScheme.surface,
+                                                Row(
+                                                  children: [
+                                                    FaIcon(
+                                                      FontAwesomeIcons
+                                                          .solidEnvelope,
+                                                      color:
+                                                          colorScheme.surface,
+                                                      size: 18,
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Expanded(
+                                                      child: StrokeText(
+                                                        text:
+                                                            data[idx]['email'] ??
+                                                            "",
+                                                        textStyle: textStyle
+                                                            .titleSmall!
+                                                            .copyWith(
+                                                              color: colorScheme
+                                                                  .surface,
+                                                            ),
+                                                        strokeColor:
+                                                            colorScheme.primary,
+                                                        strokeWidth: 3,
                                                       ),
-                                                  strokeColor:
-                                                      colorScheme.primary,
-                                                  strokeWidth: 3,
+                                                    ),
+                                                  ],
                                                 ),
-                                                StrokeText(
-                                                  text:
-                                                      data[idx]["phone_number"] ??
-                                                      "",
-                                                  textStyle: textStyle
-                                                      .titleSmall!
-                                                      .copyWith(
-                                                        color:
-                                                            colorScheme.surface,
+                                                Row(
+                                                  children: [
+                                                    FaIcon(
+                                                      FontAwesomeIcons.phone,
+                                                      color:
+                                                          colorScheme.surface,
+                                                      size: 18,
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Expanded(
+                                                      child: StrokeText(
+                                                        text:
+                                                            data[idx]["phone_number"] ??
+                                                            "",
+                                                        textStyle: textStyle
+                                                            .titleSmall!
+                                                            .copyWith(
+                                                              color: colorScheme
+                                                                  .surface,
+                                                            ),
+                                                        strokeColor:
+                                                            colorScheme.primary,
+                                                        strokeWidth: 3,
                                                       ),
-                                                  strokeColor:
-                                                      colorScheme.primary,
-                                                  strokeWidth: 3,
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
