@@ -38,3 +38,7 @@ sqlalchemy
 
 # use mysql db
 mysqlclient
+
+
+
+google-genai

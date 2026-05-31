@@ -4,3 +4,4 @@ reader_back_end/firebase_sdk_cred
 .vscode
 reader_back_end/Logs
 card_reader_app/lib/firebase_options.dart
+card_reader_app/android/app/google-services.json

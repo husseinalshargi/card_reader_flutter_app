@@ -47,7 +47,12 @@ User? currentUser = FirebaseAuth.instance.currentUser;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      name: "card-reader-app",
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   //get app the settings
   final SharedPreferences prefs = await SharedPreferences.getInstance();
