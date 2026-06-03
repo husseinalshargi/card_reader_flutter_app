@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 import time
 from typing import Annotated, List
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 from langchain_ollama import OllamaLLM
@@ -13,11 +14,11 @@ from reader_back_end.services.card_reader import CardReader
 from reader_back_end.database_connections.redis_db import Redis_db
 
 try: 
-    logging.basicConfig(level= logging.INFO, filename= f"reader_back_end\\Logs\\System Logs - {datetime.now().date()}.log", filemode= "a", 
+    logging.basicConfig(level= logging.INFO, filename= Path.cwd() / "reader_back_end" / "Logs" / f"System Logs - {datetime.now().date()}.log", filemode= "a", 
                     format="%(asctime)s - %(funcName)s - %(levelname)s - %(message)s") 
 
     user_logger = logging.getLogger("user_logger")
-    handler = logging.FileHandler(filename= f"reader_back_end\\Logs\\User Logs - {datetime.now().date()}.log", mode= "a")
+    handler = logging.FileHandler(filename= Path.cwd() / "reader_back_end" / "Logs" / f"User Logs - {datetime.now().date()}.log", mode= "a")
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     user_logger.addHandler(handler)

@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
 import os
+from pathlib import Path 
 
 class Config:
 
-    load_dotenv('reader_back_end\\.env')
+    load_dotenv( Path.cwd() / 'reader_back_end' / '.env')
 
     llm_model = os.environ.get('LLM_MODEL', 'command-r7b-arabic:7b')
 
