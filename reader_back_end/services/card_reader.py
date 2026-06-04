@@ -1,13 +1,10 @@
 from typing import List
 
 import cv2 
-from google import genai
-from langchain_ollama import OllamaLLM
 import numpy as np
 
-from reader_back_end.services.ai_service import AIService
-from reader_back_end.services.image_pre_processor import ImagePreProcessor
-from reader_back_end.settings.config import Config
+from services.ai_service import AIService
+from services.image_pre_processor import ImagePreProcessor
 
 
 class CardReader:

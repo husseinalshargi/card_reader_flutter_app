@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
-from reader_back_end.db.models.card import Card
-from reader_back_end.db.schemas.card import SaveCard
+from db.models.card import Card
+from db.schemas.card import SaveCard
 class CardRepository:
 
     def get_card(db: Session, id: str, user_id : str) -> Card:

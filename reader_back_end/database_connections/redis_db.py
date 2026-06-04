@@ -5,7 +5,7 @@ from fastapi import HTTPException
 import uuid
 import datetime
 
-from reader_back_end.settings.config import Config
+from settings.config import Config
 
 class Redis_db:
     # __api_keys_set = 'registered_apis'

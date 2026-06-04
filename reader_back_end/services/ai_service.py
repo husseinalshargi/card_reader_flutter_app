@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 from google.genai import errors
 
-from reader_back_end.settings.config import Config
+from settings.config import Config
 
 
 class AIService:

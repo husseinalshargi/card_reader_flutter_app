@@ -1,8 +1,9 @@
 from sqlalchemy import Column, Integer, String
 
-from reader_back_end.main import SQL_db
+# '..' will enable us to go one level higher as database is one dir level higher than this dir
+from ..database import SqlDB
 
-class Card(SQL_db.base):
+class Card(SqlDB.base):
     __tablename__ = "cards"
 
     id = Column(Integer, primary_key= True, autoincrement= True)

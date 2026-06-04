@@ -5,20 +5,19 @@ from typing import Annotated, List
 from pathlib import Path
 
 from sqlalchemy.orm import Session
-from langchain_ollama import OllamaLLM
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, status, encoders
 
-from reader_back_end.database_connections.firebase_db import Firebase_db
-from reader_back_end.db.database import SqlDB
-from reader_back_end.services.card_reader import CardReader
-from reader_back_end.database_connections.redis_db import Redis_db
+from database_connections.firebase_db import Firebase_db
+from db.database import SqlDB
+from services.card_reader import CardReader
+from database_connections.redis_db import Redis_db
 
 try: 
-    logging.basicConfig(level= logging.INFO, filename= Path.cwd() / "reader_back_end" / "Logs" / f"System Logs - {datetime.now().date()}.log", filemode= "a", 
+    logging.basicConfig(level= logging.INFO, filename= Path.cwd() / "Logs" / f"System Logs - {datetime.now().date()}.log", filemode= "a", 
                     format="%(asctime)s - %(funcName)s - %(levelname)s - %(message)s") 
 
     user_logger = logging.getLogger("user_logger")
-    handler = logging.FileHandler(filename= Path.cwd() / "reader_back_end" / "Logs" / f"User Logs - {datetime.now().date()}.log", mode= "a")
+    handler = logging.FileHandler(filename= Path.cwd() / "Logs" / f"User Logs - {datetime.now().date()}.log", mode= "a")
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     user_logger.addHandler(handler)
@@ -45,8 +44,7 @@ try:
 
     start_time_part = time.time()
     logging.info("=== Connecting to SQL db ===")
-    SQL_db = SqlDB()
-    SQL_db.init_db()
+    SqlDB.init_db()
 
     logging.info(f'=== SQL db connected === - Took {time.time() - start_time_part:.2f}s')
 
@@ -71,7 +69,7 @@ try:
 except Exception as e:
     logging.critical(f'error in initializing card reader back-end - Took {time.time() - start_time:.2f}s', exc_info= True)    
 
-from reader_back_end.db.schemas.card import GetCard, GetScannedResult, SaveCard
+from db.schemas.card import GetCard, GetScannedResult, SaveCard
 
 # Form(...) indicates for an entry that is a string
 # File(...) indicates for an entry that is an image or more than one (i think)
@@ -123,10 +121,10 @@ async def process_card(decoded_JWT: dict = Depends(fdb.get_user_info_from_token)
     return GetScannedResult(**card_details)
 
 @app.post("/upsert_card")
-def upsert_card(card_data: SaveCard, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+def upsert_card(card_data: SaveCard, db: Session = Depends(SqlDB.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
     # using a scheme like SaveCard will require the request to have a dict instead of passing fields
     # but it will need to be json encoded first
-    from reader_back_end.db.repositories.card_repository import CardRepository
+    from db.repositories.card_repository import CardRepository
     try:
         start_time = time.time()
         card = CardRepository.upsert_card(db, card_data, decoded_JWT["uid"])
@@ -138,8 +136,8 @@ def upsert_card(card_data: SaveCard, db: Session = Depends(SQL_db.get_db), decod
         raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't save card")
 
 @app.post("/get_card")
-def get_card(id: int, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
-    from reader_back_end.db.repositories.card_repository import CardRepository
+def get_card(id: int, db: Session = Depends(SqlDB.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    from db.repositories.card_repository import CardRepository
     try:
         start_time = time.time()
         card = CardRepository.get_card(db, id, decoded_JWT["uid"])
@@ -152,8 +150,8 @@ def get_card(id: int, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = 
 
 
 @app.get("/get_all_cards")
-def get_all_cards(db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
-    from reader_back_end.db.repositories.card_repository import CardRepository
+def get_all_cards(db: Session = Depends(SqlDB.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+    from db.repositories.card_repository import CardRepository
 
     try:
         start_time = time.time()
@@ -165,9 +163,9 @@ def get_all_cards(db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depe
         raise HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "couldn't get all cards")
 
 @app.post("/delete_card")
-def delete_card(card_id: int, db: Session = Depends(SQL_db.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
+def delete_card(card_id: int, db: Session = Depends(SqlDB.get_db), decoded_JWT: dict = Depends(fdb.get_user_info_from_token)):
     # post do nit have body so the id has to be part of the uri 
-    from reader_back_end.db.repositories.card_repository import CardRepository
+    from db.repositories.card_repository import CardRepository
     try:
         user_id = decoded_JWT["uid"] #instead of saving it in the client side we will add it here
         start_time = time.time()

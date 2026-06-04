@@ -5,7 +5,7 @@ from firebase_admin import auth
 from fastapi import HTTPException, Request, status, Security
 from fastapi.security import HTTPBearer, http
 
-from reader_back_end.settings.config import Config
+from settings.config import Config
 
 class Firebase_db:
     # this is the token taken from the header of the post request
