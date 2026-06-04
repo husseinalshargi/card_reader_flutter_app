@@ -1,22 +1,23 @@
-#view images
-matplotlib
-matplotlib-inline
+# # developmemt
+
+# #view images
+# matplotlib
+# matplotlib-inline
+
+# # used to show the image in a gui
+#opencv-python
+
+# #OCR
+# easyocr
+
+# #for using llm
+# langchain_core
+# langchain-ollama
+
 
 #image pre processing
-opencv-python
+opencv-python-headless
 imutils
-
-#OCR
-easyocr
-
-#to use gpu (based on your cuda's version)
---extra-index-url https://download.pytorch.org/whl/cu130
-torch
-torchvision
-
-#for using llm
-langchain_core
-langchain-ollama
 
 #to use .env variables
 python-dotenv
@@ -37,8 +38,6 @@ firebase_admin
 sqlalchemy
 
 # use mysql db
-mysqlclient
-
-
+pymysql
 
 google-genai
