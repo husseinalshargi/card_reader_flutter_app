@@ -4,6 +4,7 @@ import 'package:card_reader_app/Data/Enums/global_enums.dart';
 import 'package:card_reader_app/Data/Models/card_details.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,7 +22,9 @@ class ScannedCardsNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
 
   Future<List<Map<String, dynamic>>> _getDataFromAPI() async {
     final currentToken = await FirebaseAuth.instance.currentUser!.getIdToken();
-    var uri = Uri.parse('http://10.0.2.2:8000/get_all_cards');
+    var uri = Uri.parse(
+      "${dotenv.get('card_reader_backend_url')}/get_all_cards",
+    );
     var request = http.MultipartRequest('GET', uri)
       ..headers['Authorization'] = "Bearer $currentToken";
 
@@ -177,9 +180,11 @@ class ScannedCardsNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
       );
     }
 
-    var uri = Uri.http('10.0.2.2:8000', "/delete_card", {
-      "card_id": id.toString(),
-    });
+    var uri = Uri.http(
+      dotenv.get('card_reader_backend_url').replaceAll("http://", ""),
+      "/delete_card",
+      {"card_id": id.toString()},
+    );
 
     var response = await http.post(
       uri,

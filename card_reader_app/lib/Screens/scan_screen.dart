@@ -12,6 +12,7 @@ import 'package:card_reader_app/Widgets/custom_submit_button.dart';
 import 'package:card_reader_app/Widgets/take_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -71,7 +72,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     // var paint = Paint()
     //   ..color = Colors.black
 
-    var uri = Uri.parse('http://10.0.2.2:8000/process_card');
+    var uri = Uri.parse(
+      "${dotenv.get('card_reader_backend_url')}/process_card",
+    );
     var request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = "Bearer $currentToken"
       ..fields['is_binarized'] = scanRequest.isThresholdUsed.toString()

@@ -3,6 +3,7 @@ import 'package:card_reader_app/Screens/current_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -45,8 +46,9 @@ var lightScheme = ColorScheme.fromSeed(
 //get the current user signed in (it will be null if there isn't any user signed in)
 User? currentUser = FirebaseAuth.instance.currentUser;
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       name: "card-reader-app",

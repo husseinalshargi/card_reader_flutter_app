@@ -11,6 +11,7 @@ import 'package:card_reader_app/Widgets/custom_text_form_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -146,7 +147,9 @@ class _CardDetailsScreenState extends ConsumerState<CardDetailsScreen> {
       final currentToken = await FirebaseAuth.instance.currentUser!
           .getIdToken();
 
-      var uri = Uri.parse('http://10.0.2.2:8000/upsert_card');
+      var uri = Uri.parse(
+        "${dotenv.get('card_reader_backend_url')}/upsert_card",
+      );
 
       final Map<String, dynamic> requestCard = {
         "id": widget.cardDetails.id,
