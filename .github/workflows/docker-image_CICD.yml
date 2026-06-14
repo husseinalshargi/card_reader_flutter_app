@@ -1,0 +1,52 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: ["reader_back_end/**"]
+
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v4
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and Push to Dockerhub
+      run: |
+        IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end"
+
+        docker build ./reader_back_end --file ./reader_back_end/Dockerfile --tag $IMAGE_NAME:latest
+        
+        docker push $IMAGE_NAME:latest
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to EC2 using SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+
+          script: |
+            IMAGE_NAME= "${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end"
+
+            docker pull $IMAGE_NAME:latest
+
+            # true to ignore errors
+            docker stop backend-container || true
+            docker rm backend-container || true
+
+            # -d -> detached mode which mean we could do any command in the terminal after this
+            docker run -d --name backend-container -p 8000:8000 $IMAGE_NAME:latest
