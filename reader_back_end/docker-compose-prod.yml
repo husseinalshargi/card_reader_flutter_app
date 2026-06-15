@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - reader_backend_logs:/app/Logs
+      - /home/ubuntu/firebase_sdk_cred:/app/firebase_sdk_cred
     depends_on:
       - db
 
