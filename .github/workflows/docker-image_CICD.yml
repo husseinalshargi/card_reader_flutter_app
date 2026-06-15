@@ -50,4 +50,4 @@ jobs:
             docker rm backend-container || true
 
             # -d -> detached mode which mean we could do any command in the terminal after this
-            docker run -d --name backend-container -p 8000:8000 --env-file /home/ubuntu/.env "${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end:latest"
+            docker compose up -d
