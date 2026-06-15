@@ -13,9 +13,6 @@ class Config:
     REDIS_PORT = int(os.environ.get('REDIS_PORT'))
     REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
-    # admin api key for creating api keys
-    ADMIN_KEY = os.environ.get('ADMIN_KEY')
-
     #path of the firebase sdk json file
     firebase_sdk_cred_path = os.environ.get('FIREBASE_CRED_PATH')
 
