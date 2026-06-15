@@ -14,7 +14,7 @@
 # langchain_core
 # langchain-ollama
  
- 
+  
 #image pre processing
 opencv-python-headless
 imutils
