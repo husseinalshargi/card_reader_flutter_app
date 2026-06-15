@@ -1,1 +1,1 @@
-# Business card scanner Flutter app with Python FastAPI backend for AI functionalities
+# Business card scanner Flutter app with Python FastAPI backend for AI functionalities that is dockerized, using GitHub Actions for CI/CD workflows from pushing to a private Docker repo, to connecting to an AWS EC2 server using SSH, copying production configuration files, pulling the Docker container and finally using the image in the system to provide the FastAPI endpoint to be used from the Flutter mobile app
