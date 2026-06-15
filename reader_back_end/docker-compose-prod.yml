@@ -1,7 +1,7 @@
 services:
   fastapi_app:
     # this line using '.' will make docker use the Dockerfile saved in the same dir, this is used instead of image 
-    image: svrtiq/reader_back_end
+    image: svrtiq/reader_back_end:latest
     ports:
       - "8000:8000"
     env_file:

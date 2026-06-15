@@ -58,4 +58,4 @@ jobs:
             docker pull "${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end:latest"
 
             # -d -> detached mode which mean we could do any command in the terminal after this
-            docker compose --env-file /home/ubuntu/.env -f /home/ubuntu/docker-compose-prod.yml up -d
+            docker compose --env-file /home/ubuntu/.env -f /home/ubuntu/docker-compose-prod.yml up -d --force-recreate
