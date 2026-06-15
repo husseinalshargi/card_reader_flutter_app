@@ -4,7 +4,7 @@
 # matplotlib
 # matplotlib-inline
 
-# # used to show the image in a gui 
+# # used to show the image in a gui
 #opencv-python
 
 # #OCR
