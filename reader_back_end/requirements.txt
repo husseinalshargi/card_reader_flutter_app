@@ -7,7 +7,7 @@
 # # used to show the image in a gui 
 #opencv-python
 
-# #OCR
+# #OCR 
 # easyocr
 
 # #for using llm
