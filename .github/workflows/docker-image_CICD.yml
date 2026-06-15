@@ -20,6 +20,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and Push to Dockerhub
+      working-directory: ./reader_back_end
       run: |
         IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end"
 
@@ -42,7 +43,6 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: "reader_back_end/docker-compose.yml"
           target: "/home/ubuntu/"
-          strip_components: 1 # removes the reader_back_end prefix
 
 
       - name: Deploy to EC2 using SSH
