@@ -32,6 +32,19 @@ jobs:
     needs: build
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy files via SSH to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "reader_back_end/docker-compose.yml"
+          target: "/home/ubuntu/"
+          strip_components: 1 # removes the reader_back_end prefix
+
+
       - name: Deploy to EC2 using SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -43,11 +56,6 @@ jobs:
             echo "${{ secrets.DOCKERHUB_READ_ONLY_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
             docker pull "${{ secrets.DOCKERHUB_USERNAME }}/reader_back_end:latest"
-
-
-            # true to ignore errors
-            docker stop backend-container || true
-            docker rm backend-container || true
 
             # -d -> detached mode which mean we could do any command in the terminal after this
             docker compose up -d
