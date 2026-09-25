@@ -3,7 +3,7 @@
 A Flutter mobile app that scans business cards and saves the contact details, backed by a Dockerized FastAPI service that does the image processing and AI extraction. Pushing to `main` builds the backend image and redeploys it to AWS EC2 automatically.
 
 <p align="center">
-  <img width="237" height="517" alt="Screenshot 2026-06-07 131331" src="https://github.com/user-attachments/assets/837e04f1-a25a-41fa-a4b2-d78f31cc1c1d" /> <img width="225" height="502" alt="Screenshot 2026-06-07 131351" src="https://github.com/user-attachments/assets/8332dbbc-5747-4d24-9f02-d83280e52090" />
+<img width="237" height="517" alt="Screenshot 2026-06-07 131331" src="https://github.com/user-attachments/assets/837e04f1-a25a-41fa-a4b2-d78f31cc1c1d" /> <img width="225" height="502" alt="Screenshot 2026-06-07 131351" src="https://github.com/user-attachments/assets/8332dbbc-5747-4d24-9f02-d83280e52090" />
 </p>
 
 ## What it does
